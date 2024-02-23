@@ -2,6 +2,7 @@
 #include <Encoder.h>
 //#include "Servo.h"
 #include "MultiServo.h"
+#include "Steppers.h"
 // Change these two numbers to the pins connected to your encoder.
 //   Best Performance: both pins have interrupt capability
 //   Good Performance: only the first pin has interrupt capability
@@ -15,6 +16,10 @@ const int m0pwm = 2;
 const int m1en0 = 6;
 const int m1en1 = 7;
 const int m1pwm = 5;
+const int s1dir = A0;
+const int s1step = A1;
+const int s2dir = A2;
+const int s2step = A3;
 
 
 // end pindef__________________________________________________________________
@@ -24,6 +29,7 @@ long currPosition2 = 0;
 Servo s1(m0en0, m0en1, m0pwm, 19, 23);
 Servo s2(m1en0, m1en1, m1pwm, 18, 22);
 MultiServo zAxis(s1, s2);
+Steppers xAxis(s1dir, s1step, s2dir, s2step);
 //   avoid using pins with LEDs attached
 
 void setup() {
@@ -36,6 +42,10 @@ void setup() {
   pinMode(m1en0, OUTPUT);
   pinMode(m1en1, OUTPUT);
   pinMode(m1pwm, OUTPUT);
+  pinMode(s1dir, OUTPUT);
+  pinMode(s1step, OUTPUT);
+  pinMode(s2dir, OUTPUT);
+  pinMode(s2step, OUTPUT);
 
   //s1.set_current_limiting(400, true);
 }
@@ -74,19 +84,22 @@ void cmd_servo_multi(){
   
   long currPosition1 = s1.myEnc.read();
   long currPosition2 = s2.myEnc.read();
-  long tick1 = rev * 792 + currPosition1;
-  long tick2 = rev * 792 + currPosition2;
+  long tick1 = rev * 1836 + currPosition1;
+  long tick2 = -rev * 1836 + currPosition2;
   // if(dir == 'w'){
   //   s1.servo_to(tick1, 160, 0.2, 0.1);
   // }
   if(dir == 'w'){
-    // s1.fw(60);
-    // delay(1000);
-    // s1.mbreak();
-    // delay(1000);
-    // zAxis.s1.fw(60);
-    // delay(1000);
-    zAxis.servo_to(tick1, tick2, 120, 0.2, 0.1);
+    zAxis.servo_to(tick1, tick2, 100, 0.3, 0.1);
+  }
+  if(dir == 't'){
+    zAxis.servo_to(tick1, -tick2, 180, 0.4, 0.1);
+  }
+  if(dir == 'a'){
+    xAxis.revStepperSRamp(abs(rev), 1, 4 );
+  }
+  if(dir == 'd'){
+    xAxis.revStepperSRamp(abs(rev), -1, 4 );
   }
 }
 

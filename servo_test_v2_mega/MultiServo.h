@@ -17,16 +17,16 @@ class MultiServo{
 
     void drive_motor(Servo servo, int control){
       if(control > 5){
-        if(control > 25){
+        if(control > 20){
           servo.fw(control);
         }else{
-          servo.fw(25);
+          servo.fw(20);
         }
       }else if(control < -5){
-        if(control < -25){
+        if(control < -20){
           servo.bw(-control);
         }else{
-          servo.bw(25);
+          servo.bw(20);
         }
         
       }else{
@@ -41,7 +41,7 @@ class MultiServo{
       unsigned long lastT = millis();
       unsigned long t = millis();
       unsigned long initialT = millis();
-      int timeout = (_timeout_a * (targetPosition1 - s1.currPosition) / 720 + _timeout_b) * 1000;
+      int timeout = (_timeout_a * (targetPosition1 - s1.currPosition) / 1836 + _timeout_b) * 1000;
       long lastPosition1 = s1.currPosition;
       long lastPosition2 = s2.currPosition;
       double lastVelocity1 = 0.0;
@@ -93,8 +93,8 @@ class MultiServo{
           // Serial.print(velocity);
           // Serial.print("  ");
           
-          // Serial.print(s1.currPosition);
-          // Serial.print("  ");
+          Serial.println(s1.currPosition);
+          Serial.print(" <s1");
           // Serial.print(targetPosition1);
           
           if(abs(control1) > maxPwm){
@@ -109,10 +109,8 @@ class MultiServo{
           //Serial.print(control1 * 4);
           //Serial.print(" ");
           
-          if(abs(targetPosition1 - s1.currPosition) < 250 && abs(velocity1) < 5){
+          if(abs(targetPosition1 - s1.currPosition) < 400 && abs(velocity1) < 5){
             stopcount1 += 1;
-            Serial.println("plusing");
-            Serial.println(stopcount1);
           }else{
             // Serial.print("dif");
             // Serial.println(abs(targetPosition1 - s1.currPosition));
@@ -140,7 +138,7 @@ class MultiServo{
             control2 = maxPwm * (control2 / abs(control2));
           }
           drive_motor(s2, control2);
-          if(abs(targetPosition2 - s2.currPosition) < 250 && abs(velocity2) < 5){
+          if(abs(targetPosition2 - s2.currPosition) < 400 && abs(velocity2) < 5){
             stopcount2 += 1;
           }else{
             stopcount2 = 0;
@@ -151,6 +149,8 @@ class MultiServo{
           if(abs(targetPosition2 - s2.currPosition) < 33 && abs(velocity2) < 10){
             s2Complete = true;
           }
+          Serial.println(s2.currPosition);
+          Serial.print(" <s2");
           lastPosition2 = s2.currPosition;
           lastVelocity2 = velocity2;
         //common
