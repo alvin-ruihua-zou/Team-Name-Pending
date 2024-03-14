@@ -26,7 +26,7 @@ class Steppers{
       if(step > ramp_step){
         return terminalDelay;
       }
-      double base = 0.2;
+      double base = 0.1;
       double progress = base + (1.0-base) * double(step + 1) / ramp_step;
       int delay = terminalDelay / sqrt(progress);
       return delay;

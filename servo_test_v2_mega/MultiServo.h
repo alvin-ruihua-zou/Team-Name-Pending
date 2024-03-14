@@ -33,36 +33,56 @@ class MultiServo{
         servo.mbreak();
       }
     }
+    //ramp power output to reduce acceleration
+    //assumes s1 and s2 are traveling at similar speed
+    int rampedPWM(int terminalPWM, long pos_diff){
+      if(pos_diff > 1 * 1836){//change this value to change acceleration rate
+        return terminalPWM;
+      }
+      double base = 0.4;
+      double pwm = base + (1.0-base) * double(pos_diff + 1) / 1 * 1836;//change this value to change acceleration rate
+      return pwm;
+    }
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //Main Servo Method////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void servo_to(long targetPosition1, long targetPosition2, int maxPwm, double p, double d){
+    void servo_to(long targetPosition1, long targetPosition2, int maxPwm, double p, double d, bool ramped = false){\
+      //common variables
       unsigned long lastT = millis();
       unsigned long t = millis();
       unsigned long initialT = millis();
-      int timeout = (_timeout_a * (targetPosition1 - s1.currPosition) / 1836 + _timeout_b) * 1000;
+      unsigned long timeout = (_timeout_a * abs(targetPosition1 - s1.currPosition) / 1836 + _timeout_b) * 1000;
+      int ogMaxPwm = maxPwm;
+
+      //S1 variables
       long lastPosition1 = s1.currPosition;
-      long lastPosition2 = s2.currPosition;
       double lastVelocity1 = 0.0;
       double instantVelocity1 = 0.0;
       double velocity1 = 0.0;
       int stopcount1 = 0;
+      bool s1Complete = false;
 
+      //S2 variables
+      long lastPosition2 = s2.currPosition;
       double lastVelocity2 = 0.0;
       double instantVelocity2 = 0.0;
       double velocity2 = 0.0;
       int stopcount2 = 0;
-
-      _acs_reading = 512.0;
-
-      bool s1Complete = false;
       bool s2Complete = false;
-      //while(abs(targetPosition - _currPosition) > 33 || abs(velocity) > 10){
+
+      
+
+      
+      
       while((s1Complete && s2Complete) == false){
         t = millis();
         if(t - initialT > timeout){
+          
           break;
+        }
+        if(ramped){
+          maxPwm = rampedPWM(ogMaxPwm, abs(targetPosition1 - s1.currPosition));
         }
 
         //S1 part////////////////////////////////////////////////////////
@@ -71,21 +91,22 @@ class MultiServo{
           instantVelocity1 = double(s1.currPosition - lastPosition1) / double(t - lastT + 0.1) * 1000;
           velocity1 = 0.6 * velocity1 + 0.4 * instantVelocity1;
           double control1 = -p * 0.3* (s1.currPosition - targetPosition1) - d * 0.05 * velocity1;
-          // Serial.print("Target:");
-          // Serial.println(targetPosition1);
+          Serial.print("Target:");
+          Serial.println(targetPosition1);
           //  Serial.print("curr:");
           // Serial.println(s1.currPosition);
           // Serial.print("control bf");
           // Serial.println(control1);
-          // double new_acs_reading = analogRead(A0);
-          // _acs_reading = _acs_reading * 0.92 + 0.08 * new_acs_reading;
-          // double amp = (_acs_reading - _zero) / 13.5;
-          // double ma = amp * 1000;
+          double new_acs_reading = analogRead(A0);
+          _acs_reading = _acs_reading * 0.92 + 0.08 * new_acs_reading;
+          double amp = (_acs_reading - _zero) / 13.5;
+          double ma = amp * 1000;
           // if(abs(ma) > _stall_ma && _enable_stall_protection){
           //   break;
           //   Serial.println("STALL DETECTED, ABORT");
           // }
-            
+          Serial.print("raw: ");
+          Serial.println(new_acs_reading);
           //Serial.println(ma);
           // Serial.print(instantVelocity);
           // Serial.print("  ");
@@ -111,19 +132,21 @@ class MultiServo{
           
           if(abs(targetPosition1 - s1.currPosition) < 400 && abs(velocity1) < 5){
             stopcount1 += 1;
+            s1.mbreak();
           }else{
-            // Serial.print("dif");
-            // Serial.println(abs(targetPosition1 - s1.currPosition));
-            // Serial.print("velo");
-            // Serial.println(velocity1);
             stopcount1 = 0;
           }
           if(stopcount1 > 10){
               s1Complete = true;
+              s1.mbreak();
             }
           if(abs(targetPosition1 - s1.currPosition) < 33 && abs(velocity1) < 10){
-            Serial.println("s1 compelte");
             s1Complete = true;
+            Serial.print("Completed! Target:");
+          Serial.println(targetPosition1);
+           Serial.print("curr:");
+          Serial.println(s1.currPosition);
+            s1.mbreak();
           }
           lastPosition1 = s1.currPosition;
           lastVelocity1 = velocity1;
@@ -145,14 +168,18 @@ class MultiServo{
           }
           if(stopcount2 > 10){
               s2Complete = true;
+              s2.mbreak();
+              Serial.println("160");
             }
           if(abs(targetPosition2 - s2.currPosition) < 33 && abs(velocity2) < 10){
             s2Complete = true;
+            s2.mbreak();
+            Serial.println("165");
           }
-          Serial.println(s2.currPosition);
-          Serial.print(" <s2");
           lastPosition2 = s2.currPosition;
           lastVelocity2 = velocity2;
+           Serial.print("curr:");
+          Serial.println(s2.currPosition);
         //common
           lastT = t;
 
@@ -167,8 +194,8 @@ class MultiServo{
 
     int _en0, _en1, _pwm_pin, _enc0, _enc1;
     long _currPosition  = 0;
-    int _timeout_a = 1;
-    int _timeout_b = 3;
+    unsigned long _timeout_a = 1;
+    unsigned long _timeout_b = 3;
 
     //Current sensor
     double _acs_reading = 512.0;
