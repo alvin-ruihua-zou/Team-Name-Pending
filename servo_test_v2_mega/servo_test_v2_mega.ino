@@ -30,7 +30,7 @@ const int s1dir = 28;
 const int s1step = 29;
 const int s2dir = 30;
 const int s2step = 31;
-const int voltPin = A15;
+const int voltPin = 15;
 
 // end pindef__________________________________________________________________
 long currPosition  = 0;
@@ -82,18 +82,33 @@ double get_voltage(){
   return voltage;
 }
 void cmd_servo_multi(){
-  Serial.println("Enter revolution:");
-  while (Serial.available() == 0){
-    delay(10);
-  }
-  String cmd = Serial.readString();
-  Serial.println(cmd);
-  char dir = cmd[0];
-  double rev =cmd.substring(1).toFloat();
+//  Serial.println("Enter revolution:");
+//  while (Serial.available() == 0){
+//    delay(10);
+//  }
+//  String cmd = Serial.readString();
+//  Serial.println(cmd);
+//  char dir = cmd[0];
+//  double rev =cmd.substring(1).toFloat();
   
+  char dir_cmd[1];
+  char dir;
+  // put your main code here, to run repeatedly:
+  if (Serial.available() > 0) {
+    int size = Serial.readBytesUntil('0', dir_cmd, 1);
+    Serial.print(dir_cmd);
+    dir = dir_cmd[0];
+    memset(dir_cmd, 0,1);
+    while (Serial.available()>0){
+        char t = Serial.read();
+
+        
+    }
+  }
+  //delay(1);
   
 
-  
+  double rev = 0;
   // if(dir == 'w'){
   //   s1.servo_to(tick1, 160, 0.2, 0.1);
   // }
@@ -102,9 +117,11 @@ void cmd_servo_multi(){
     long currPosition2 = s2.myEnc.read();
     long tick1 = -rev * 1836 + currPosition1;
     long tick2 = rev * 1836 + currPosition2;
+    Serial.print("wwwwwwwwwwwwwwwww");
     zAxis.servo_to(tick1, tick2, 40, 0.3, 0.1);
   }
   if(dir == 't'){
+    Serial.print("ttttttttttttttt");
     long currPosition1 = d1.myEnc.read();
     long currPosition2 = d2.myEnc.read();
     long tick1 = rev * 1836 + currPosition1;
@@ -112,12 +129,15 @@ void cmd_servo_multi(){
     driveTrain.servo_to(tick1, tick2, 200, 0.5, 0.1);
   }
   if(dir == 'a'){
+    Serial.print("aaaaaaaaaaaaaaaaa");
     xAxis.revStepperSRamp(abs(rev), 1, 7 );
   }
   if(dir == 'd'){
+    Serial.print("ddddddddddddddddddddddd");
     xAxis.revStepperSRamp(abs(rev), -1, 7 );
   }
   if(dir == 'z'){
+    Serial.print("zzzzzzzzzzzzzzz");
     s1.myEnc.write(0);
     s2.myEnc.write(0);
   }
@@ -128,18 +148,23 @@ void cmd_servo_multi(){
     Serial.println(s2.myEnc.read());
   }
   if(dir == 'v'){
+    Serial.print("vvvvvvvvvvvvvvvvvv");
     zAxis.servo_to(4.3 * 1836, -4.3* 1836, 80, 0.3, 0.1);
   }
   if(dir == 'b'){
+    Serial.print("bbbbbbbbbbbbbbbbbbbb");
     xAxis.revStepperSRamp(6.4, -1, 6 );
   }
   if(dir == 'n'){
+    Serial.print("nnnnnnnnnnnnnnnnnnn");
     zAxis.servo_to(0 * 1836, 0 * 1836, 80, 0.3, 0.1);
   }
   if(dir == 'm'){
+    Serial.print("mmmmmmmmmmmmmmmmmmmm");
     xAxis.revStepperSRamp(6.4, 1, 6 );
   }
-  if(dir = 'i'){
+  if(dir == 'i'){
+    Serial.print("iiiiiiiiiiiiiiiiiiii");
     zAxis.servo_to(4.3 * 1836, -4.3* 1836, 80, 0.3, 0.1);
     xAxis.revStepperSRamp(6.4, -1, 6 );
     zAxis.servo_to(0 * 1836, 0 * 1836, 80, 0.3, 0.1);

@@ -11,8 +11,12 @@ void loop() {
   char buffer[16];
   // put your main code here, to run repeatedly:
   if (Serial.available() > 0) {
-    int size = Serial.readBytesUntil('\n', buffer, 12);
+    int size = Serial.readBytesUntil('0', buffer, 1);
     Serial.print(buffer);
+    memset(buffer, 0,16);
+    while (Serial.available()>0){
+        char t = Serial.read();
+    }
   }
   
 }
