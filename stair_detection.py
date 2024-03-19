@@ -262,7 +262,7 @@ try:
                         cv2.line(lines_image, pt1, pt2, (0, 0, 255), 3, cv2.LINE_AA)
 
                 # TODO: Fix bounding box stuff
-                """
+
                 vline_l_exist = len(vert_line_left) == 2
                 vline_r_exist = len(vert_line_right) == 2
                 if not vline_l_exist:
@@ -281,11 +281,11 @@ try:
                 intersections.append(
                     intersection(vert_line_right, [rho_max, np.pi / 2])
                 )
-                intersections.append(intersection(vert_line_left, [rho_min, np.pi / 2]))
-
                 intersections.append(
                     intersection(vert_line_right, [rho_min, np.pi / 2])
                 )
+                intersections.append(intersection(vert_line_left, [rho_min, np.pi / 2]))
+
                 for point in intersections:
                     cv2.circle(lines_image, point, 7, (0, 255, 0), -1)
                 # print(intersections)
@@ -306,7 +306,7 @@ try:
                     # bounded_points = np.where(flags.reshape(h, w))
                     # print(bounded_points.shape)
                     depth_image = bounded_points
-                """
+
                 mean_depth = np.zeros(len(rhos) - 1)
                 for i in range(len(rhos) - 1):
                     rho = int(rhos[i])
