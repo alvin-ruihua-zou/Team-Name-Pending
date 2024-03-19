@@ -152,7 +152,8 @@ void cmd_servo_multi(){
   }
 
   if(dir == 'i'){
-    zAxis.servo_to(4.3 * 1836, -4.3* 1836, 80, 0.4, 0.1);
+    for(int i = 0; i < 3; i++){
+      zAxis.servo_to(4.3 * 1836, -4.3* 1836, 80, 0.4, 0.1);
     delay(1000);
     xAxis.revStepperSRamp(6.4, -1, 6 );
     delay(1000);
@@ -174,28 +175,7 @@ void cmd_servo_multi(){
     tick2 = -1.0 * 792 + currPosition2;
     driveTrain.servo_to_no_correction(tick1, tick2, 100, 0.4, 0.1, true);
     delay(1000);
-
-    zAxis.servo_to(4.3 * 1836, -4.3* 1836, 80, 0.4, 0.1);
-    delay(1000);
-    xAxis.revStepperSRamp(6.4, -1, 6 );
-    delay(1000);
-
-    
-    
-    zAxis.servo_to(-0.4 * 1836, 0.4 * 1836, 80, 0.4, 0.1);
-    delay(1000);
-    xAxis.revStepperSRamp(6.4, 1, 6 );
-    delay(1000);
-
-    currPosition1 = d1.myEnc.read();
-    currPosition2 = d2.myEnc.read();
-    tick1 = 0.48 * 792 + currPosition1;
-    tick2 = -0.48 * 792 + currPosition2;
-    driveTrain.servo_to_no_correction(tick1, tick2, 200, 2.2, 0.1, false);
-    delay(500);
-    tick1 = 1.0 * 792 + currPosition1;
-    tick2 = -1.0 * 792 + currPosition2;
-    driveTrain.servo_to_no_correction(tick1, tick2, 100, 0.4, 0.1, true);
+    }
     
   }
   if(dir == '?'){
