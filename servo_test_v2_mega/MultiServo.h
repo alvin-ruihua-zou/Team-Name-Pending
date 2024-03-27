@@ -6,6 +6,9 @@ class MultiServo{
   public:
     Servo& s1;
     Servo& s2;
+    double dx = 0;
+    double dy = 0;
+    double dtheta = 0;
   public:
     
     MultiServo(Servo& sA, Servo& sB):
@@ -91,15 +94,22 @@ class MultiServo{
         if(ramped){
           maxPwm = rampedPWM(ogMaxPwm, abs(targetPosition1 - s1.currPosition));
         }
+        s1.update_position();
+        s2.update_position();
         if(enable_odo){
-          double d_dist = (instantVelocity1 + instantVelocity2)/2;
-          double d_rot = (instantVelocity1 - instantVelocity2) * 0.281;
+          double d_s1 = s1.currPosition - lastPosition1;
+          double d_s2 = s2.currPosition - lastPosition2;
+          double d_dist = (d_s1 + d_s2)/2 / 792 * 0.065*3.14;
+          double d_rot = (d_s1 - d_s2) / 792 * 0.281;//wheel diameter 6.5cm, wheel base 28cm
+          dy += d_dist * double(t - lastT + 0.01) * 1000 * sin(dtheta);
+          dx += d_dist * double(t - lastT + 0.01) * 1000 * cos(dtheta);
+          dtheta += d_rot;
         }
         
 
         //S1 part////////////////////////////////////////////////////////
         if(s1Complete == false){
-          s1.update_position();
+          
           instantVelocity1 = double(s1.currPosition - lastPosition1) / double(t - lastT + 0.1) * 1000;
           velocity1 = 0.6 * velocity1 + 0.4 * instantVelocity1;
           double control1 = -p * 0.3* (s1.currPosition - targetPosition1) - d * 0.05 * velocity1;
@@ -148,12 +158,12 @@ class MultiServo{
           Serial.println(s1.currPosition);
             s1.mbreak();
           }
-          lastPosition1 = s1.currPosition;
+          
           lastVelocity1 = velocity1;
         }      
         //S2 part////////////////////////////////////////////////////////
         if(s2Complete == false){
-          s2.update_position();
+          
           instantVelocity2 = double(s2.currPosition - lastPosition2) / double(t - lastT + 0.1) * 1000;
           velocity2 = 0.6 * velocity2 + 0.4 * instantVelocity2;
           double control2 = -p * 0.3* (s2.currPosition - targetPosition2) - d * 0.05 * velocity2;
@@ -174,12 +184,14 @@ class MultiServo{
             s2Complete = true;
             s2.mbreak();
           }
-          lastPosition2 = s2.currPosition;
+          
           lastVelocity2 = velocity2;
            Serial.print("curr:");
           Serial.println(s2.currPosition);
         //common
           lastT = t;
+          lastPosition1 = s1.currPosition;
+          lastPosition2 = s2.currPosition;
 
         }
       
@@ -322,7 +334,5 @@ class MultiServo{
     bool _enable_stall_protection = false;
     bool _enable_current_limit = false;
 
-    double dx = 0;
-    double dy = 0;
-    double dtheta = 0;
+    
 };

@@ -88,8 +88,19 @@ void cmd_servo_multi(){
   }
   String cmd = Serial.readString();
   Serial.println(cmd);
-  char dir = cmd[0];
-  double rev =cmd.substring(1).toFloat();
+  int index = 0;
+  for(int i = 0; i < 3; i++){
+    if(isDigit(cmd[i]) or cmd[i] == '-'){
+      index = i;
+      break;
+    }
+  }
+  if(index == 0){
+    Serial.println("\n Wrong CMD \n");
+    return;
+  }
+  String dir = cmd.substring(0,index);
+  double rev =cmd.substring(index).toFloat();
   
   
 
@@ -110,6 +121,13 @@ void cmd_servo_multi(){
     long tick1 = rev * 1836 + currPosition1;
     long tick2 = -rev * 1836 + currPosition2;
     driveTrain.servo_to_no_correction(tick1, tick2, 150, 0.5, 0.1, true);
+  }
+  if(dir == "fw"){
+    long currPosition1 = d1.myEnc.read();
+    long currPosition2 = d2.myEnc.read();
+    long tick1 = rev * 1836 + currPosition1;
+    long tick2 = rev * 1836 + currPosition2;
+    driveTrain.servo_to(tick1, tick2, 150, 0.5, 0.1, true, true);
   }
   if(dir == 'l'){
     long currPosition1 = d1.myEnc.read();
