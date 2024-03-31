@@ -57,14 +57,14 @@ class MultiServo{
 //Main Servo Method////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void servo_to(long targetPosition1, long targetPosition2, int maxPwm, double p, double d, bool ramped = false, bool enable_odo = false){
+    void servo_to(long targetPosition1, long targetPosition2, int maxPwm, double p, double d, bool enable_odo = false){
       //common variables
       unsigned long lastT = millis();
       unsigned long t = millis();
       unsigned long initialT = millis();
       unsigned long timeout = (_timeout_a * abs(targetPosition1 - s1.currPosition) / 1836 + _timeout_b) * 1000;
       int ogMaxPwm = maxPwm;
-
+      bool ramped = false;
       //S1 variables
       long lastPosition1 = s1.currPosition;
       double lastVelocity1 = 0.0;
@@ -98,11 +98,22 @@ class MultiServo{
         s2.update_position();
         if(enable_odo){
           double d_s1 = s1.currPosition - lastPosition1;
-          double d_s2 = s2.currPosition - lastPosition2;
-          double d_dist = (d_s1 + d_s2)/2 / 792 * 0.065*3.14;
-          double d_rot = (d_s1 - d_s2) / 792 * 0.281;//wheel diameter 6.5cm, wheel base 28cm
-          dy += d_dist * double(t - lastT + 0.01) * 1000 * sin(dtheta);
-          dx += d_dist * double(t - lastT + 0.01) * 1000 * cos(dtheta);
+          // Serial.print("currPostion:");
+          // Serial.println(s1.currPosition);
+          // Serial.print("lastPosition1:");
+          // Serial.println(lastPosition1);
+
+          double d_s2 = -(s2.currPosition - lastPosition2);
+          double d_dist = (d_s1 + d_s2)/2 / 792 * 0.0607*3.14;
+          double d_rot = (d_s1 - d_s2) * 3.14 *1.2  / 792 * 0.217;//wheel diameter 6.1cm, wheel base 28cm
+          dy += d_dist * 1000 * sin(dtheta);
+          dx += d_dist * 1000 * cos(dtheta);
+          Serial.print("X:");
+          Serial.println(dx);
+          Serial.print("Y:");
+          Serial.println(dy);
+          Serial.print("Theta:");
+          Serial.println(dtheta);
           dtheta += d_rot;
         }
         
@@ -124,8 +135,8 @@ class MultiServo{
           // Serial.print(velocity);
           // Serial.print("  ");
           
-          Serial.println(s1.currPosition);
-          Serial.print(" <s1");
+          // Serial.println(s1.currPosition);
+          // Serial.print(" <s1");
           // Serial.print(targetPosition1);
           
           if(abs(control1) > maxPwm){
@@ -186,8 +197,8 @@ class MultiServo{
           }
           
           lastVelocity2 = velocity2;
-           Serial.print("curr:");
-          Serial.println(s2.currPosition);
+          //  Serial.print("curr:");
+          // Serial.println(s2.currPosition);
         //common
           lastT = t;
           lastPosition1 = s1.currPosition;
