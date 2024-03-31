@@ -113,15 +113,14 @@ void cmd_servo_multi(){
   String cmd = Serial.readString();
   
   int index = 0;
-  for(int i = 0; i < 5; i++){
+  for(int i = 0; i < 5 && i < cmd.length(); i++){
     if(isDigit(cmd[i]) or cmd[i] == '-'){
       index = i;
       break;
     }
   }
   if(index == 0){
-    Serial.println("\n Wrong CMD \n");
-    return;
+    index = cmd.length();
   }
   String dir = cmd.substring(0,index);
   double rev =cmd.substring(index).toFloat();
