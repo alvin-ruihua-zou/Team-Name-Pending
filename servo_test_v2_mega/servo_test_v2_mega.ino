@@ -117,7 +117,7 @@ void cmd_servo_multi()
     delay(10);
   }
   String cmd = Serial.readString();
-
+  Serial.println(cmd);
   int index = 0;
   for (int i = 0; i < 5 && i < cmd.length(); i++)
   {
@@ -137,7 +137,7 @@ void cmd_servo_multi()
   Serial.println(dir);
   Serial.print("rev is:");
   Serial.println(rev);
-  return;
+  
   // if(dir == 'w'){
   //   s1.servo_to(tick1, 160, 0.2, 0.1);
   // }

@@ -3,7 +3,7 @@
 import serial
 from pynput import keyboard
 
-arduino = serial.Serial("/dev/ttyACM0", 9600, timeout=1)
+arduino = serial.Serial("/dev/ttyUSB0", 9600, timeout=1)
 
 input_str = ""
 
@@ -51,5 +51,5 @@ def on_press(key):
 # listener.start()
 
 while True:
-    input = input("Enter command ")
-    arduino.write(bytes(input + "\r\n", "utf-8"))
+    input_str = input("Enter command ")
+    arduino.write(bytes(input_str + "\r\n", "utf-8"))
