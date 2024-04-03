@@ -109,17 +109,11 @@ void drive_till_edge(int speed, int max_range)
   d1.mbreak();
   d2.mbreak();
 }
-void cmd_servo_multi()
+void cmd_servo_multi(String cmd)
 {
-  Serial.println("Enter CMD:");
-  while (Serial.available() == 0)
-  {
-    delay(10);
-  }
-  String cmd = Serial.readString();
   Serial.println(cmd);
   int index = 0;
-  for (int i = 0; i < 5 && i < cmd.length(); i++)
+  for (int i = 0; i < 7 && i < cmd.length(); i++)
   {
     if (isDigit(cmd[i]) or cmd[i] == '-')
     {
@@ -137,7 +131,7 @@ void cmd_servo_multi()
   Serial.println(dir);
   Serial.print("rev is:");
   Serial.println(rev);
-  
+  return;
   // if(dir == 'w'){
   //   s1.servo_to(tick1, 160, 0.2, 0.1);
   // }
@@ -294,7 +288,39 @@ void cmd_servo_multi()
 //     s2.servo_to(tick2, 160, 0.2, 0.1);
 //   }
 // }
+
+void multi_command()
+{
+  Serial.println("Enter CMD sequence:");
+  while (Serial.available() == 0)
+  {
+    delay(10);
+  }
+  String cmd = Serial.readString();
+  Serial.println(cmd);
+  int curr_idx = 0;
+  int idx = 0;
+  while (true)
+  {
+    idx = cmd.indexOf(':', curr_idx);
+
+    String command = cmd.substring(curr_idx, idx);
+    Serial.println(command);
+    cmd_servo_multi(command);
+    curr_idx = idx + 1;
+    if (cmd.indexOf(':', curr_idx) == -1)
+    {
+      idx = cmd.indexOf(':', curr_idx);
+      String command = cmd.substring(curr_idx, idx);
+      cmd_servo_multi(command);
+      Serial.println(command);
+      break;
+    }
+  }
+}
+
 void loop()
 {
-  cmd_servo_multi();
+  // cmd_servo_multi();
+  multi_command();
 }
