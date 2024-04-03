@@ -131,7 +131,7 @@ void cmd_servo_multi(String cmd)
   Serial.println(dir);
   Serial.print("rev is:");
   Serial.println(rev);
-  return;
+  
   // if(dir == 'w'){
   //   s1.servo_to(tick1, 160, 0.2, 0.1);
   // }
@@ -212,7 +212,7 @@ void cmd_servo_multi(String cmd)
 
   if (dir == "i")
   {
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 10; i++)
     {
       zAxis.servo_to(4.3 * 1836, -4.3 * 1836, 100, 0.4, 0.1);
       delay(200);
@@ -230,8 +230,8 @@ void cmd_servo_multi(String cmd)
       long tick2 = -0.48 * 792 + currPosition2;
       driveTrain.servo_to_no_correction(tick1, tick2, 200, 1.9, 0.1, false);
       delay(200);
-      tick1 = 1.0 * 792 + currPosition1;
-      tick2 = -1.0 * 792 + currPosition2;
+      tick1 = 1.3 * 792 + currPosition1;
+      tick2 = -1.3 * 792 + currPosition2;
       driveTrain.servo_to_no_correction(tick1, tick2, 100, 0.5, 0.1, true);
       delay(200);
     }
