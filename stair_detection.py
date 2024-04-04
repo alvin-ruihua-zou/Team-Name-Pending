@@ -140,8 +140,8 @@ try:
         vert_lines = []
         vert_lines_left = []
         vert_lines_right = []
-        vert_rhos_left = -10000
-        vert_rhos_right = 10000
+        vert_rhos_left = 10000
+        vert_rhos_right = -10000
         vert_line_left = []
         vert_line_right = []
         hori_rhos = []
@@ -152,27 +152,34 @@ try:
             for i in range(0, len(lines)):
                 rho = lines[i][0]
                 theta = lines[i][1]
+                # if rho < 0 and theta < np.pi / 2:
+                #     print(rho, theta)
+                if theta > np.pi:
+                    print(theta)
+
                 # Get stair vertical lines
                 # print(vert_lines)
                 # print(lines_trimmed)
 
                 if (
-                    theta >= np.pi * 7 / 8 - tolerance
-                    and theta <= np.pi * 7 / 8 + tolerance
-                ) and (vert_rhos_left - rho < -threshold):
-                    vert_lines_left.append(lines[i])
-                    vert_rhos_left = rho
-                    vert_line_left = lines[i]
+                    theta >= np.pi * 9 / 10 - tolerance
+                    and theta <= np.pi * 9 / 10 + tolerance
+                ):
+                    if vert_rhos_left > rho:
+                        vert_lines_left.append(lines[i])
+                        vert_rhos_left = rho
+                        vert_line_left = lines[i]
 
-                if theta >= np.pi / 8 - tolerance and theta <= np.pi / 8 + tolerance:
-                    if vert_rhos_right - rho > threshold:
+                if theta >= np.pi / 10 - tolerance and theta <= np.pi / 10 + tolerance:
+                    if rho > vert_rhos_right:
                         vert_lines_right.append(lines[i])
                         vert_rhos_right = rho
                         vert_line_right = lines[i]
-                    # if vert_rhos_left - rho < -threshold:
-                    #     vert_lines_left.append(lines[i])
-                    #     vert_rhos_left = rho
-                    #     vert_line_left = lines[i]
+
+                # if vert_rhos_left - rho < -threshold:
+                #     vert_lines_left.append(lines[i])
+                #     vert_rhos_left = rho
+                #     vert_line_left = lines[i]
 
                 # Check if the line is mostly parallel to the ground
                 if (
@@ -217,7 +224,7 @@ try:
                     y0 = b * rho
                     pt1 = (int(x0 + 1000 * (-b)), int(y0 + 1000 * (a)))
                     pt2 = (int(x0 - 1000 * (-b)), int(y0 - 1000 * (a)))
-                    cv2.line(lines_image, pt1, pt2, (255, 0, 0), 7, cv2.LINE_AA)
+                    cv2.line(lines_image, pt1, pt2, (255, 255, 0), 7, cv2.LINE_AA)
                 if len(vert_line_right) == 2:
                     rho, theta = vert_line_right
                     a = np.cos(theta)
@@ -230,7 +237,7 @@ try:
 
             if lines_trimmed.ndim == 2:
                 # group the lines close to each other together.
-                threshold = 15
+                threshold = 30
                 # print(lines_trimmed)
 
                 rhos = np.array(group(lines_trimmed, threshold))
@@ -261,30 +268,61 @@ try:
                     else:
                         cv2.line(lines_image, pt1, pt2, (0, 0, 255), 3, cv2.LINE_AA)
 
+                rho_added = []
+                curr_rho = rhos[0]
+                while curr_rho < rhos[-1]:
+                    rho_added.append(curr_rho)
+                    curr_rho += m
+                for i in range(len(rho_added)):
+
+                    rho = rho_added[i]
+                    theta = np.pi / 2
+                    a = np.cos(theta)
+                    b = np.sin(theta)
+                    x0 = a * rho
+                    y0 = b * rho
+                    pt1 = (int(x0 + 1000 * (-b)), int(y0 + 1000 * (a)))
+                    pt2 = (int(x0 - 1000 * (-b)), int(y0 - 1000 * (a)))
+                    cv2.line(lines_image, pt1, pt2, (0, 255, 255), 3, cv2.LINE_AA)
+
                 # TODO: Fix bounding box stuff
 
                 vline_l_exist = len(vert_line_left) == 2
                 vline_r_exist = len(vert_line_right) == 2
                 if not vline_l_exist:
-                    vert_line_left = [-w / 2, np.pi]
+                    vert_line_left = [-w, np.pi]
                 if not vline_r_exist:
-                    vert_line_right = [w / 2, 0]
+                    vert_line_right = [w, 0]
                 rho_max = np.max(rhos)
                 rho_min = np.min(rhos)
+                lines_sorted = lines_trimmed[np.argsort(lines_trimmed[:, 0])]
+                line_max = lines_sorted[-1]
+                line_min = lines_sorted[0]
                 if rho_max == rho_min:
                     if rho_max >= h / 2:
                         rho_min = 0
+                        line_min = [0, np.pi / 2]
                     else:
                         rho_max = h
+                        line_max = [h, np.pi / 2]
                 intersections = []
-                intersections.append(intersection(vert_line_left, [rho_max, np.pi / 2]))
-                intersections.append(
-                    intersection(vert_line_right, [rho_max, np.pi / 2])
-                )
-                intersections.append(
-                    intersection(vert_line_right, [rho_min, np.pi / 2])
-                )
-                intersections.append(intersection(vert_line_left, [rho_min, np.pi / 2]))
+                intersections.append(intersection(vert_line_left, line_max))
+                intersections.append(intersection(vert_line_right, line_max))
+                intersections.append(intersection(vert_line_right, line_min))
+                intersections.append(intersection(vert_line_left, line_min))
+                intersections = np.array(intersections)
+
+                # Sort with respect to y
+                intersections = intersections[np.argsort(intersections[:, 0])]
+
+                # Check which point is closer to p2 to ensure the points are added in order
+                p2 = intersections[1, :]
+                p3 = intersections[2, :]
+                p4 = intersections[3, :]
+                if np.abs(p3[1] - p2[1]) < np.abs(p4[1] - p2[1]):
+                    intersections[2:, :] = [p3, p4]
+                else:
+                    intersections[2:, :] = [p4, p3]
 
                 for point in intersections:
                     cv2.circle(lines_image, point, 7, (0, 255, 0), -1)
@@ -298,13 +336,20 @@ try:
                         (xv.flatten()[:, np.newaxis], yv.flatten()[:, np.newaxis])
                     )
                 )
-
+                mean_depth_bbox = np.zeros(len(rhos) - 1)
                 if np.sum(flags) > 0:
                     # print(np.sum(flags))
                     bounded_points = depth_image[flags.reshape(h, w), :]
                     bounded_points = depth_image * flags.reshape(h, w, 1)
                     # bounded_points = np.where(flags.reshape(h, w))
                     # print(bounded_points.shape)
+
+                    for i in range(len(rhos) - 1):
+                        rho = int(rhos[i])
+                        rho2 = int(rhos[i + 1])
+                        pixels = depth_image[h - rho2 : h - rho, :]
+                        cv2.rectangle(img_blur, (0, rho), (w, rho2), (255, 0, 0), 2)
+                        mean_depth_bbox[i] = np.mean(pixels)
                     depth_image = bounded_points
 
                 mean_depth = np.zeros(len(rhos) - 1)
@@ -314,17 +359,20 @@ try:
                     pixels = depth_image[h - rho2 : h - rho, :]
                     cv2.rectangle(img_blur, (0, rho), (w, rho2), (255, 0, 0), 2)
                     mean_depth[i] = np.mean(pixels)
-
+                mean_depth = mean_depth * 0.2 + mean_depth_bbox * 0.8
                 # print(mean_depth)
-                print(
-                    np.sum((mean_depth[:-1] >= mean_depth[1:]))
-                    > int(len(mean_depth) * 2 / 4)
-                )
+                mean_variance_thres = 0
+                if len(mean_depth) > 0:
+                    print(
+                        np.max(mean_depth) - np.min(mean_depth) > mean_variance_thres
+                        and np.sum((mean_depth[:-1] >= mean_depth[1:]))
+                        > int(len(mean_depth) * 2 / 4)
+                    )
         # Show images
         cv2.namedWindow("RealSense Edges", cv2.WINDOW_AUTOSIZE)
         cv2.imshow("RealSense Edges", edges_image)
-        # cv2.namedWindow("RealSense All Edges", cv2.WINDOW_AUTOSIZE)
-        # cv2.imshow("RealSense All Edges", all_lines_image)
+        cv2.namedWindow("RealSense All Edges", cv2.WINDOW_AUTOSIZE)
+        cv2.imshow("RealSense All Edges", all_lines_image)
         cv2.namedWindow("RealSense lines", cv2.WINDOW_AUTOSIZE)
         cv2.imshow("RealSense lines", lines_image)
         # cv2.namedWindow("RealSense depth_lines", cv2.WINDOW_AUTOSIZE)
