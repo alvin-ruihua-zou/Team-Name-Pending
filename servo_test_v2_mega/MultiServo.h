@@ -43,6 +43,18 @@ class MultiServo{
       dy = 0;
       dtheta = 0;
     }
+    int limit_speed(double over_speed, int control){
+      over_speed = min(over_speed, 4);
+      double b = 0.96;
+      double a = 0.2;
+      double ratio = 0.95 - a * (over_speed - 1.0);
+      double new_control = ratio * control;
+      if(control * new_control < 0){
+        return 0;
+      }else{
+        return new_control;
+      }
+    }
     //ramp power output to reduce acceleration
     //assumes s1 and s2 are traveling at similar speed
     int rampedPWM(int terminalPWM, long pos_diff){
@@ -57,7 +69,7 @@ class MultiServo{
 //Main Servo Method////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void servo_to(long targetPosition1, long targetPosition2, int maxPwm, double p, double d, bool enable_odo = false){
+    void servo_to(long targetPosition1, long targetPosition2, int maxPwm, double p, double d, bool enable_odo = false, double max_speed = 9999){
       //common variables
       unsigned long lastT = millis();
       unsigned long t = millis();
@@ -108,12 +120,12 @@ class MultiServo{
           double d_rot = (d_s1 - d_s2) * 3.14 *1.2  / 792 * 0.217;//wheel diameter 6.1cm, wheel base 28cm
           dy += d_dist * 1000 * sin(dtheta);
           dx += d_dist * 1000 * cos(dtheta);
-          Serial.print("X:");
-          Serial.println(dx);
-          Serial.print("Y:");
-          Serial.println(dy);
-          Serial.print("Theta:");
-          Serial.println(dtheta);
+          // Serial.print("X:");
+          // Serial.println(dx);
+          // Serial.print("Y:");
+          // Serial.println(dy);
+          // Serial.print("Theta:");
+          // Serial.println(dtheta);
           dtheta += d_rot;
         }
         
@@ -122,7 +134,7 @@ class MultiServo{
         if(s1Complete == false){
           
           instantVelocity1 = double(s1.currPosition - lastPosition1) / double(t - lastT + 0.1) * 1000;
-          velocity1 = 0.6 * velocity1 + 0.4 * instantVelocity1;
+          velocity1 = instantVelocity1;
           double control1 = -p * 0.3* (s1.currPosition - targetPosition1) - d * 0.05 * velocity1;
           //  Serial.print("curr:");
           // Serial.println(s1.currPosition);
@@ -142,8 +154,16 @@ class MultiServo{
           if(abs(control1) > maxPwm){
             control1 = maxPwm * (control1 / abs(control1));
           }
-          // Serial.print("  ");
+          // Serial.print("velocity1:");
+          // Serial.println(velocity1);
+          // Serial.print(" control1 before: ");
           // Serial.println(control1);
+          if(abs(velocity1) > max_speed && velocity1 * control1 > 0){
+            control1 = limit_speed(abs(velocity1)/max_speed, control1);
+          }
+          // Serial.print(" control1: ");
+          // Serial.println(control1);
+          
           drive_motor(s1, control1);
           // if(_enable_current_limit && abs(ma) > _current_limit){
           //   control1 = chop_current(control1, ma);
@@ -176,11 +196,20 @@ class MultiServo{
         if(s2Complete == false){
           
           instantVelocity2 = double(s2.currPosition - lastPosition2) / double(t - lastT + 0.1) * 1000;
-          velocity2 = 0.6 * velocity2 + 0.4 * instantVelocity2;
+          velocity2 = instantVelocity2;
           double control2 = -p * 0.3* (s2.currPosition - targetPosition2) - d * 0.05 * velocity2;
           if(abs(control2) > maxPwm){
             control2 = maxPwm * (control2 / abs(control2));
           }
+          Serial.print("velocity2:");
+          Serial.println(velocity2);
+          Serial.print(" control2 before: ");
+          Serial.println(control2);
+          if(abs(velocity2) > max_speed && velocity2 * control2 > 0){
+            control2 = limit_speed(abs(velocity2)/max_speed, control2);
+          }
+          Serial.print(" control2: ");
+          Serial.println(control2);
           drive_motor(s2, control2);
           if(abs(targetPosition2 - s2.currPosition) < 400 && abs(velocity2) < 5){
             stopcount2 += 1;
@@ -340,7 +369,7 @@ class MultiServo{
     double _acs_reading1 = 512.0;
     double _acs_reading2 = 512.0;
     double _zero = 512.0;
-    double _stall_ma = 900;
+    double _stall_ma = 1300;
     double _current_limit = 1000;
     bool _enable_stall_protection = false;
     bool _enable_current_limit = false;

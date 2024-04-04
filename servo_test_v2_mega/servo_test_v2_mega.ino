@@ -82,24 +82,66 @@ double get_voltage(){
   return voltage;
 }
 
-void drive_till_edge(int speed, int max_range){
-  long initPos = d1.myEnc.read();
-  long currPos = d1.myEnc.read();
+void drive_till_edge(int ospeed, int max_range){
+  int max_speed = 300;
+  double correction = 6.0;
+  long initPos1 = d1.myEnc.read();
+  long initPos2 = d2.myEnc.read();
+  long currPos1 = d1.myEnc.read();
+  long currPos2 = d2.myEnc.read();
   int thresh = 150;
   // Serial.println(analogRead(A9));
   // Serial.println(abs(currPos - initPos));
   // Serial.println(analogRead(A9) < thresh);
   // Serial.println(abs(currPos - initPos) < max_range);
-  while((analogRead(A9) > thresh) && (abs(currPos - initPos) < max_range)){
+  long lastPosition1 = d1.myEnc.read();
+  long lastPosition2 = d1.myEnc.read();
+  long lastT = millis();
+  long t = millis();
+  double velocity1 = 0;
+  double velocity2 = 0;
+  int control1 = ospeed;
+  int control2 = ospeed;
+  while((analogRead(A9) > thresh) && (abs(currPos1 - initPos1) < max_range)){
+    control1 = ospeed;
+    control2 = ospeed;
+    t = millis();
     Serial.println(analogRead(A9));
-    currPos = d1.myEnc.read();
-    if(speed < 0){
-      d1.bw(-speed);
-      d2.fw(-speed);
-    }else{
-      d1.fw(speed);
-      d2.bw(speed);
+
+    currPos1 = d1.myEnc.read();
+    velocity1 = double(currPos1 - lastPosition1) / double(t - lastT + 0.1) * 1000;
+    currPos2 = d2.myEnc.read();
+    velocity2 = double(currPos2 - lastPosition2) / double(t - lastT + 0.1) * 1000;
+
+    
+
+    if(abs(velocity1) > max_speed){
+      control1 = driveTrain.limit_speed(abs(velocity1), control1 / max_speed);
     }
+    if(abs(velocity2) > max_speed){
+      control2 = driveTrain.limit_speed(abs(velocity2), control2 / max_speed);
+    }
+
+    double rot = (abs(currPos1 - initPos1) - abs(currPos2 - initPos2)) / 792 /4.6 ;//28/6.1 = 4.6
+    control2 *= (1.0 + rot * correction);
+  
+    Serial.print("velocity:");
+    Serial.println(velocity1);
+    Serial.print("control");
+    Serial.println(control1);
+    if(control1 < 0){
+      d1.bw(-control1);
+    }else{
+      d1.fw(control1);
+    }
+    if(control2 < 0){
+      d1.bw(-control2);
+    }else{
+      d1.fw(control2);
+    }
+    lastT = t;
+    lastPosition1 = currPos1;
+    lastPosition2 = currPos2;
     
   }
   d1.mbreak();
@@ -132,7 +174,7 @@ void cmd_servo_multi(){
   // if(dir == 'w'){
   //   s1.servo_to(tick1, 160, 0.2, 0.1);
   // }
-  if(dir == 'w'){
+  if(dir == "w"){
     long currPosition1 = s1.myEnc.read();
     long currPosition2 = s2.myEnc.read();
     long tick1 = -rev * 1836 + currPosition1;
@@ -145,14 +187,14 @@ void cmd_servo_multi(){
     long currPosition2 = d2.myEnc.read();
     long tick1 = rev * 792 + currPosition1;
     long tick2 = rev * 792 + currPosition2;
-    driveTrain.servo_to(tick1, tick2, 150, 1.2, 0.1, true);
+    driveTrain.servo_to(tick1, tick2, 150, 1.4, 0.1, true,500);
   }
   if(dir == "fw"){
     long currPosition1 = d1.myEnc.read();
     long currPosition2 = d2.myEnc.read();
     long tick1 = rev * 792 + currPosition1;
     long tick2 = -rev * 792 + currPosition2;
-    driveTrain.servo_to(tick1, tick2, 120, 0.5, 0.2, true);
+    driveTrain.servo_to(tick1, tick2, 140, 0.5, 0.2, true, 400);
   }
   if(dir == "l"){
     long currPosition1 = d1.myEnc.read();
@@ -196,7 +238,7 @@ void cmd_servo_multi(){
   }
 
   if(dir == "i"){
-    for(int i = 0; i < 3; i++){
+    for(int i = 0; i < 4; i++){
       zAxis.servo_to(4.3 * 1836, -4.3* 1836, 100, 0.4, 0.1);
     delay(200);
     xAxis.revStepperSRamp(6.4, -1, 6 );
@@ -204,33 +246,54 @@ void cmd_servo_multi(){
 
     
     
-    zAxis.servo_to(-0.4 * 1836, 0.4 * 1836, 100, 0.4, 0.1);
+    zAxis.servo_to(-0.2 * 1836, 0.2 * 1836, 100, 0.4, 0.1);
     delay(200);
     xAxis.revStepperSRamp(6.4, 1, 6 );
     delay(200);
 
     long currPosition1 = d1.myEnc.read();
     long currPosition2 = d2.myEnc.read();
-    long tick1 = 0.48 * 792 + currPosition1;
-    long tick2 = -0.48 * 792 + currPosition2;
+    long tick1 = 0.68 * 792 + currPosition1;
+    long tick2 = -0.68 * 792 + currPosition2;
     driveTrain.servo_to_no_correction(tick1, tick2, 200, 1.9, 0.1, false);
     delay(200);
-    tick1 = 1.0 * 792 + currPosition1;
-    tick2 = -1.0 * 792 + currPosition2;
-    driveTrain.servo_to_no_correction(tick1, tick2, 100, 0.5, 0.1, true);
+    tick1 = 2.0 * 792 + currPosition1;
+    tick2 = -2.0 * 792 + currPosition2;
+    driveTrain.servo_to_no_correction(tick1, tick2, 140, 0.9, 0.1, true);
     delay(200);
     }
     
   }
   if(dir == "di"){
-    drive_till_edge(-90, 2000);
-    delay(500);                                                                                                                                                                         
+    zAxis.servo_to(-0.2 * 1836, 0.2 * 1836, 100, 0.4, 0.1);
     delay(200);
-    long currPosition1 = d1.myEnc.read();
-    long currPosition2 = d2.myEnc.read();
-    long tick1 = -0.18 * 792 + currPosition1;
-    long tick2 = 0.18 * 792 + currPosition2;
-    driveTrain.servo_to_no_correction(tick1, tick2, 200, 4.5, 0.1, false);
+    for(int i = 0; i < 1; i++){
+      drive_till_edge(-90, 2000);
+      delay(500);                                                                                                                                                                         
+      // long currPosition1 = d1.myEnc.read();
+      // long currPosition2 = d2.myEnc.read();
+      // long tick1 = -0.18 * 792 + currPosition1;
+      // long tick2 = 0.18 * 792 + currPosition2;
+      // driveTrain.servo_to_no_correction(tick1, tick2, 200, 4.5, 0.1, false);
+
+      xAxis.revStepperSRamp(6.4, -1, 6 );//frame back
+      delay(200);
+
+      zAxis.servo_to(4.3 * 1836, -4.3* 1836, 100, 0.4, 0.1);//frame down
+      delay(200);
+
+      xAxis.revStepperSRamp(6.4, 1, 6 );//bot back
+      delay(200);
+
+      zAxis.servo_to(-0.2 * 1836, 0.2 * 1836, 100, 0.4, 0.1);//bot down
+      delay(200);
+      
+      tick1 = 2.0 * 792 + currPosition1;
+      tick2 = -2.0 * 792 + currPosition2;
+      driveTrain.servo_to_no_correction(tick1, tick2, 140, 0.9, 0.1, true);//forward to square
+      delay(200);
+    }
+
     
   }
   if(dir == "?"){
