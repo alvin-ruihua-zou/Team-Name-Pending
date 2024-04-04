@@ -46,7 +46,7 @@ class MultiServo{
     int limit_speed(double over_speed, int control){
       over_speed = min(over_speed, 4);
       double b = 0.96;
-      double a = 0.2;
+      double a = 0.15;
       double ratio = 0.95 - a * (over_speed - 1.0);
       double new_control = ratio * control;
       if(control * new_control < 0){
@@ -183,11 +183,6 @@ class MultiServo{
             }
           if(abs(targetPosition1 - s1.currPosition) < 33 && abs(velocity1) < 10){
             s1Complete = true;
-            Serial.print("Completed! Target:");
-          Serial.println(targetPosition1);
-           Serial.print("curr:");
-          Serial.println(s1.currPosition);
-            s1.mbreak();
           }
           
           lastVelocity1 = velocity1;
@@ -201,15 +196,15 @@ class MultiServo{
           if(abs(control2) > maxPwm){
             control2 = maxPwm * (control2 / abs(control2));
           }
-          Serial.print("velocity2:");
-          Serial.println(velocity2);
-          Serial.print(" control2 before: ");
-          Serial.println(control2);
+          // Serial.print("velocity2:");
+          // Serial.println(velocity2);
+          // Serial.print(" control2 before: ");
+          // Serial.println(control2);
           if(abs(velocity2) > max_speed && velocity2 * control2 > 0){
             control2 = limit_speed(abs(velocity2)/max_speed, control2);
           }
-          Serial.print(" control2: ");
-          Serial.println(control2);
+          // Serial.print(" control2: ");
+          // Serial.println(control2);
           drive_motor(s2, control2);
           if(abs(targetPosition2 - s2.currPosition) < 400 && abs(velocity2) < 5){
             stopcount2 += 1;
@@ -236,7 +231,7 @@ class MultiServo{
         }
       
       }
-      Serial.println("done");
+      // Serial.println("done");
       s1.mbreak();
       s2.mbreak();
     }
@@ -283,7 +278,7 @@ class MultiServo{
             _acs_reading1 = _acs_reading1 * 0.94 + 0.06 * new_acs_reading;
             double amp = abs((_acs_reading1 - _zero) / 13.5);
             double ma = amp * 1000;
-            Serial.println(ma);
+            // Serial.println(ma);
             if(ma > _stall_ma){
               s1.mbreak();
               Serial.println("S1 STALLED");
@@ -298,10 +293,10 @@ class MultiServo{
 
           if(abs(targetPosition1 - s1.currPosition) < 50){
             s1Complete = true;
-            Serial.print("Completed! Target:");
-          Serial.println(targetPosition1);
-           Serial.print("curr:");
-          Serial.println(s1.currPosition);
+          //   Serial.print("Completed! Target:");
+          // Serial.println(targetPosition1);
+          //  Serial.print("curr:");
+          // Serial.println(s1.currPosition);
             s1.mbreak();
           }
 
@@ -351,7 +346,6 @@ class MultiServo{
         }
       
       }
-      Serial.println("done");
       s1.mbreak();
       s2.mbreak();
     }
