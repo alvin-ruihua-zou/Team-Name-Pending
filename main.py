@@ -4,7 +4,7 @@ import serial
 import time
 import numpy as np
 from generate_graph_opt import get_path
-
+import re
 
 class motionPrim:
     def __init__(
@@ -55,7 +55,7 @@ def get_prims(prims_file):
     return motionPrims(motion_prims, num_prims, resolution, num_angles)
 
 
-arduino = serial.Serial("COM6", 9600, timeout=1)
+arduino = serial.Serial("COM11", 9600, timeout=1)
 
 
 prims = get_prims("prims_4angles.txt")
@@ -140,9 +140,12 @@ while True:
                 line = arduino.readline()
                 if b"x, y, theta" in line:
                     x = str(arduino.readline())
+                    x = float(re.findall("\d+\.\d+",x)[0])
                     y = str(arduino.readline())
-                    z = str(arduino.readline())
-                    print(x, y, z)
+                    y = float(re.findall("\d+\.\d+",y)[0])
+                    th = str(arduino.readline())
+                    th = float(re.findall("\d+\.\d+",th)[0])
+                    print(x, y, th)
                     exit()
 
 
