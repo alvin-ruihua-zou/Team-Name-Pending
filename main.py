@@ -1,6 +1,7 @@
 # Nano: ssh -X tnp@192.168.1.160
 
 import serial
+import time
 import numpy as np
 from generate_graph_opt import get_path
 
@@ -54,50 +55,96 @@ def get_prims(prims_file):
     return motionPrims(motion_prims, num_prims, resolution, num_angles)
 
 
-# arduino = serial.Serial("/dev/ttyUSB0", 9600, timeout=1)
+arduino = serial.Serial("COM6", 9600, timeout=1)
 
 
-prims = get_prims("prims_8angles.txt")
+prims = get_prims("prims_4angles.txt")
 prims_dict = dict()
 for prim in prims.prims:
     prims_dict[prim.id] = prim
 
-prim_id_commands = [26, 17, 17, 17, 17, 9, 28, 18, 10, 2]
 
-prim_id_commands = get_path(
+def plan(
+    start=[5, 5, 1],
+    goal=[88, 120, 1],
     map_size=[114, 122],
     obstacles=[[52, 96, 0, 10], [96, 114, 0, 16], [0, 63, 114, 122]],
-    start=[0, 0, 0],
-    goal=[88, 120, 2],
-    prims="prims_8angles.txt",
-)
+):
+    start = [5, 5, 1]
+    curr_pos = start
+    prim_id_commands = get_path(
+        map_size=[114, 122],
+        obstacles=[[52, 96, 0, 10], [96, 114, 0, 16], [0, 63, 114, 122]],
+        start=start,
+        goal=[88, 120, 1],
+        prims="prims_4angles.txt",
+    )
+    prim = prims_dict[prim_id_commands[0]]
+    curr_pos = [
+        curr_pos[0] + prim.endpose[0],
+        curr_pos[1] + prim.endpose[1],
+        prim.endpose[2],
+    ]
 
-arduino_fw_conversion = prims.resolution / 0.2
-arduino_t_conversion = 1 / (78 * np.pi / 180)
-cmd_sequence = ""
-for id in prim_id_commands:
-    prim = prims_dict[id]
-    # fw command if angle doesn't change
-    if prim.start_angle == prim.endpose[2]:
-        if prim.endpose[0] == 0:
-            dist = abs(prim.endpose[1]) * arduino_fw_conversion
+    arduino_fw_conversion = prims.resolution / 0.2
+    arduino_t_conversion = 1 / (78 * np.pi / 180)
+    cmd_sequence = ""
+    prev_cmd = ""
+    fw_sum = 0
+    for id in prim_id_commands:
+        prim = prims_dict[id]
+        # fw command if angle doesn't change
+        if prim.start_angle == prim.endpose[2]:
+            if prim.endpose[0] == 0:
+                dist = abs(prim.endpose[1]) * arduino_fw_conversion
+            else:
+                dist = abs(prim.endpose[0]) * arduino_fw_conversion
+            cmd = "fw" + str(dist)
+            if prev_cmd != "fw":
+                prev_cmd = "fw"
+
+        # t command since robot is turning
         else:
-            dist = abs(prim.endpose[0]) * arduino_fw_conversion
-        cmd = "fw" + str(dist)
+            angle = (
+                (prim.endpose[2] - prim.start_angle)
+                * (np.pi * 2)
+                / prims.num_angles
+                * arduino_t_conversion
+            )
+            cmd = f"t{angle:.3f}"
+        if cmd[:2] == "fw" and prev_cmd == "fw":
+            fw_sum += dist
+        else:
+            cmd_sequence += "fw" + str(fw_sum) + ":" + cmd + ":"
+            fw_sum = 0
+            prev_cmd = "t"
+    if prev_cmd == "fw":
+        cmd_sequence += "fw" + str(fw_sum) + ":"
+    print(cmd_sequence)
+    print(cmd_sequence.split(":"))
+    return cmd_sequence.split(":")[0]
 
-    # t command since robot is turning
-    else:
-        angle = (
-            (prim.endpose[2] - prim.start_angle)
-            * (np.pi * 2)
-            / prims.num_angles
-            * arduino_t_conversion
-        )
-        cmd = f"t{angle:.3f}"
 
-    cmd_sequence += cmd + ":"
-print(cmd_sequence)
 # arduino.write(bytes(cmd_sequence + "\r\n", "utf-8"))
+time.sleep(3)
+while True:
+    cmd = plan()
+    print(cmd)
+    arduino.write(bytes(cmd + ":\r\n", "utf-8"))
+    while True:
+        line = arduino.readline()
+        print(line)
+        if b"complete" in line:
+            arduino.write(bytes("odo:" + "\r\n", "utf-8"))
+            while True:
+                line = arduino.readline()
+                if b"x, y, theta" in line:
+                    x = str(arduino.readline())
+                    y = str(arduino.readline())
+                    z = str(arduino.readline())
+                    print(x, y, z)
+                    exit()
+
 
 exit()
 while True:
