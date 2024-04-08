@@ -366,7 +366,7 @@ def generate_graph(prims, prims_highres, env, start_state, goal_state, car, p_ma
                                 new_node.inopen = True
                                 graph.nodes[new_node.id].inopen = True
                                 open_q.put(new_node)
-    print(graph.nodes[-1], new_node, goal_state)
+    #print(graph.nodes[-1], new_node, goal_state)
     return graph
 
 
@@ -504,9 +504,12 @@ def search_graph(graph, start_state, goal_state):
         if start_found and goal_found:
             break
     if not start_found or not goal_found:
-        print("Error: invalid states")
+        print(f"Error: invalid states {start_state} {goal_state}")
+        return list()
 
     # Get path
+    if start_state == goal_state:
+        return list()
     start_found = False
     curr_node = goal_node
     actions = list()

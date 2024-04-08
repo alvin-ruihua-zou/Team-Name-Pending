@@ -74,7 +74,7 @@ def plan(
 ):
     curr_pos = start
     if start == goal:
-        return None, True
+        return None, None, True
     prim_id_commands = get_path(
         map_size=[114, 122],
         obstacles=[[52, 96, 0, 10], [96, 114, 0, 16], [0, 63, 114, 122]],
@@ -121,19 +121,34 @@ def plan(
             cmd_sequence += "fw" + str(fw_sum) + ":" + cmd + ":"
             fw_sum = 0
             prev_cmd = "t"
-    if prev_cmd == "fw":
-        cmd_sequence += "fw" + str(fw_sum) + ":"
+    cmd = cmd_sequence.split(":")[0]
+    if "fw" in cmd:
+        rev = cmd[2:]
+        print(rev)
+        rev = float(rev)
+        if rev < 1:
+            if len(cmd_sequence.split(":")) > 1:
+                cmd = cmd_sequence.split(":")[1]
+                prim = prims_dict[prim_id_commands[1]]
+                curr_pos = [
+                    curr_pos[0] + prim.endpose[0],
+                    curr_pos[1] + prim.endpose[1],
+                    prim.endpose[2],
+                ]
+            else:
+                return None, None, True
     print(cmd_sequence)
     print(cmd_sequence.split(":"))
-    return cmd_sequence.split(":")[0], False
+    return cmd, curr_pos, False
 
 
 # arduino.write(bytes(cmd_sequence + "\r\n", "utf-8"))
 time.sleep(3)
 steps = 0
 curr_pos = [5, 5, 1]
+dx, dy, x_prev, y_prev = 0, 0, 0, 0
 while True:
-    cmd, complete = plan(start=curr_pos)
+    cmd, curr_pos, complete = plan(start=curr_pos)
     if complete:
         break
     print(cmd)
@@ -149,17 +164,21 @@ while True:
                 if b"x, y, theta" in line:
                     y = str(arduino.readline())
                     y = float(re.findall("\d+\.\d+", y)[0])
+                    dy = y - y_prev
+                    y_prev = y
                     x = str(arduino.readline())
                     x = float(re.findall("\d+\.\d+", x)[0])
                     th = str(arduino.readline())
+                    dx = x - x_prev
+                    x_prev = x
                     th = float(re.findall("\d+\.\d+", th)[0])
                     print(x, y, th)
-                    curr_pos[:2] = [curr_pos[0] + x / 25.4, curr_pos[1] + y / 25.4]
+                    curr_pos[:2] = [curr_pos[0] + dx / 25.4, curr_pos[1] + dy / 25.4]
                     odom_received = True
                     break
-    steps += 1
-    if steps == 2:
-        exit()
+    #steps += 1
+    #if steps == 2:
+        #exit()
 
 
 exit()
