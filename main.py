@@ -7,7 +7,6 @@ from generate_graph_opt import get_path
 import re
 
 
-
 class motionPrim:
     def __init__(
         self, prim_id, start_angle, endpose, costmult, inter_poses, num_interposes
@@ -57,7 +56,7 @@ def get_prims(prims_file):
     return motionPrims(motion_prims, num_prims, resolution, num_angles)
 
 
-arduino = serial.Serial("/dev/ttyUSB0", 9600, timeout=1)
+arduino = serial.Serial("COM6", 9600, timeout=1)
 
 
 prims = get_prims("prims_4angles.txt")
@@ -94,7 +93,8 @@ def plan(
     cmd_sequence = ""
     prev_cmd = ""
     fw_sum = 0
-    for id in prim_id_commands:
+    for i in range(len(prim_id_commands)):
+        id = prim_id_commands[i]
         prim = prims_dict[id]
         # fw command if angle doesn't change
         if prim.start_angle == prim.endpose[2]:
@@ -116,19 +116,24 @@ def plan(
             )
             cmd = f"t{angle:.3f}"
         if cmd[:2] == "fw" and prev_cmd == "fw":
-            fw_sum += dist
+            # Append cmd if it's the last one
+            if i == len(prim_id_commands) - 1:
+                cmd_sequence += cmd + ":"
+            else:
+                fw_sum += dist
         else:
             cmd_sequence += "fw" + str(fw_sum) + ":" + cmd + ":"
             fw_sum = 0
             prev_cmd = "t"
-    cmd = cmd_sequence.split(":")[0]
+    cmd_sequence = cmd_sequence.split(":")[:-1]
+    cmd = cmd_sequence[0]
     if "fw" in cmd:
         rev = cmd[2:]
         print(rev)
         rev = float(rev)
         if rev < 1:
-            if len(cmd_sequence.split(":")) > 1:
-                cmd = cmd_sequence.split(":")[1]
+            if len(cmd_sequence) > 1:
+                cmd = cmd_sequence[1]
                 prim = prims_dict[prim_id_commands[1]]
                 curr_pos = [
                     curr_pos[0] + prim.endpose[0],
@@ -138,7 +143,7 @@ def plan(
             else:
                 return None, None, True
     print(cmd_sequence)
-    print(cmd_sequence.split(":"))
+    print(cmd)
     return cmd, curr_pos, False
 
 
@@ -176,9 +181,9 @@ while True:
                     curr_pos[:2] = [curr_pos[0] + dx / 25.4, curr_pos[1] + dy / 25.4]
                     odom_received = True
                     break
-    #steps += 1
-    #if steps == 2:
-        #exit()
+    # steps += 1
+    # if steps == 2:
+    # exit()
 
 
 exit()
