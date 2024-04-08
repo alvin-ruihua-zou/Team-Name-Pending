@@ -150,7 +150,8 @@ def plan(
 # arduino.write(bytes(cmd_sequence + "\r\n", "utf-8"))
 time.sleep(3)
 steps = 0
-curr_pos = [5, 5, 1]
+start = [5, 5, 1]
+curr_pos = start
 dx, dy, x_prev, y_prev = 0, 0, 0, 0
 while True:
     cmd, curr_pos, complete = plan(start=curr_pos)
@@ -178,13 +179,13 @@ while True:
                     x_prev = x
                     th = float(re.findall("\d+\.\d+", th)[0])
                     print(x, y, th)
-                    curr_pos[:2] = [curr_pos[0] + dx / 25.4, curr_pos[1] + dy / 25.4]
+                    curr_pos[:2] = [start[0] + x / 25.4, start[1] + y / 25.4]
                     odom_received = True
                     break
     # steps += 1
     # if steps == 2:
     # exit()
-
+print("planning complete, start stair climbing")
 
 exit()
 while True:
