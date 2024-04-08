@@ -122,10 +122,10 @@ def visualize_prims(prims):
     for prim in prims.prims:
         xx = [s[0] for s in prim.inter_poses]
         xy = [s[1] for s in prim.inter_poses]
-        plt.plot(xx, xy)
-        plt.gca().set_aspect("equal")
-        plt.show()
-        plt.savefig("prims.png")
+        # plt.plot(xx, xy)
+        # plt.gca().set_aspect("equal")
+        # plt.show()
+        # plt.savefig("prims.png")
 
 
 def state_exists(graph, new_pos):
@@ -164,7 +164,7 @@ def check_collision(state, prim, car, env):
             and row_c + cell[1] < env.rows
             and 0 <= col_c + cell[0]
             and col_c + cell[0] < env.cols
-            and env.map[row_c + cell[1]][col_c + cell[0]] == 1
+            and env.map[row_c + int(cell[1])][col_c + int(cell[0])] == 1
         ):
             # print(f"state {state} with prim {prim.endpose} collides with {row_c+row},{col_c+col}")
             return False
@@ -366,7 +366,7 @@ def generate_graph(prims, prims_highres, env, start_state, goal_state, car, p_ma
                                 new_node.inopen = True
                                 graph.nodes[new_node.id].inopen = True
                                 open_q.put(new_node)
-    print(graph.nodes[-1], new_node, goal_state)
+    #print(graph.nodes[-1], new_node, goal_state)
     return graph
 
 
@@ -504,9 +504,12 @@ def search_graph(graph, start_state, goal_state):
         if start_found and goal_found:
             break
     if not start_found or not goal_found:
-        print("Error: invalid states")
+        print(f"Error: invalid states {start_state} {goal_state}")
+        return list()
 
     # Get path
+    if start_state == goal_state:
+        return list()
     start_found = False
     curr_node = goal_node
     actions = list()
@@ -668,8 +671,8 @@ def collision_precheck(state, prim, env, p_map):
     for i in range(prim.num_interposes):
         x = state[0] + prim.inter_poses[i][0] / env.resolution
         y = state[1] + prim.inter_poses[i][1] / env.resolution
-        row_c = round(y)
-        col_c = round(x)
+        row_c = int(round(y))
+        col_c = int(round(x))
         if (
             0 <= row_c
             and row_c < env.rows

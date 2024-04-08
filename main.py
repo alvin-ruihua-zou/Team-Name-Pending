@@ -6,6 +6,7 @@ import numpy as np
 from generate_graph_opt import get_path
 import re
 
+
 class motionPrim:
     def __init__(
         self, prim_id, start_angle, endpose, costmult, inter_poses, num_interposes
@@ -55,7 +56,7 @@ def get_prims(prims_file):
     return motionPrims(motion_prims, num_prims, resolution, num_angles)
 
 
-arduino = serial.Serial("COM11", 9600, timeout=1)
+arduino = serial.Serial("COM6", 9600, timeout=1)
 
 
 prims = get_prims("prims_4angles.txt")
@@ -65,13 +66,14 @@ for prim in prims.prims:
 
 
 def plan(
-    start=[5, 5, 1],
+    start,
     goal=[88, 120, 1],
     map_size=[114, 122],
     obstacles=[[52, 96, 0, 10], [96, 114, 0, 16], [0, 63, 114, 122]],
 ):
-    start = [5, 5, 1]
     curr_pos = start
+    if start == goal:
+        return None, None, True
     prim_id_commands = get_path(
         map_size=[114, 122],
         obstacles=[[52, 96, 0, 10], [96, 114, 0, 16], [0, 63, 114, 122]],
@@ -91,7 +93,8 @@ def plan(
     cmd_sequence = ""
     prev_cmd = ""
     fw_sum = 0
-    for id in prim_id_commands:
+    for i in range(len(prim_id_commands)):
+        id = prim_id_commands[i]
         prim = prims_dict[id]
         # fw command if angle doesn't change
         if prim.start_angle == prim.endpose[2]:
@@ -113,25 +116,51 @@ def plan(
             )
             cmd = f"t{angle:.3f}"
         if cmd[:2] == "fw" and prev_cmd == "fw":
-            fw_sum += dist
+            # Append cmd if it's the last one
+            if i == len(prim_id_commands) - 1:
+                cmd_sequence += cmd + ":"
+            else:
+                fw_sum += dist
         else:
             cmd_sequence += "fw" + str(fw_sum) + ":" + cmd + ":"
             fw_sum = 0
             prev_cmd = "t"
-    if prev_cmd == "fw":
-        cmd_sequence += "fw" + str(fw_sum) + ":"
+    cmd_sequence = cmd_sequence.split(":")[:-1]
+    cmd = cmd_sequence[0]
+    if "fw" in cmd:
+        rev = cmd[2:]
+        print(rev)
+        rev = float(rev)
+        if rev < 1:
+            if len(cmd_sequence) > 1:
+                cmd = cmd_sequence[1]
+                prim = prims_dict[prim_id_commands[1]]
+                curr_pos = [
+                    curr_pos[0] + prim.endpose[0],
+                    curr_pos[1] + prim.endpose[1],
+                    prim.endpose[2],
+                ]
+            else:
+                return None, None, True
     print(cmd_sequence)
-    print(cmd_sequence.split(":"))
-    return cmd_sequence.split(":")[0]
+    print(cmd)
+    return cmd, curr_pos, False
 
 
 # arduino.write(bytes(cmd_sequence + "\r\n", "utf-8"))
 time.sleep(3)
+steps = 0
+start = [5, 5, 1]
+curr_pos = start
+dx, dy, x_prev, y_prev = 0, 0, 0, 0
 while True:
-    cmd = plan()
+    cmd, curr_pos, complete = plan(start=curr_pos)
+    if complete:
+        break
     print(cmd)
     arduino.write(bytes(cmd + ":\r\n", "utf-8"))
-    while True:
+    odom_received = False
+    while not odom_received:
         line = arduino.readline()
         print(line)
         if b"complete" in line:
@@ -139,15 +168,24 @@ while True:
             while True:
                 line = arduino.readline()
                 if b"x, y, theta" in line:
-                    x = str(arduino.readline())
-                    x = float(re.findall("\d+\.\d+",x)[0])
                     y = str(arduino.readline())
-                    y = float(re.findall("\d+\.\d+",y)[0])
+                    y = float(re.findall("\d+\.\d+", y)[0])
+                    dy = y - y_prev
+                    y_prev = y
+                    x = str(arduino.readline())
+                    x = float(re.findall("\d+\.\d+", x)[0])
                     th = str(arduino.readline())
-                    th = float(re.findall("\d+\.\d+",th)[0])
+                    dx = x - x_prev
+                    x_prev = x
+                    th = float(re.findall("\d+\.\d+", th)[0])
                     print(x, y, th)
-                    exit()
-
+                    curr_pos[:2] = [start[0] + x / 25.4, start[1] + y / 25.4]
+                    odom_received = True
+                    break
+    # steps += 1
+    # if steps == 2:
+    # exit()
+print("planning complete, start stair climbing")
 
 exit()
 while True:
