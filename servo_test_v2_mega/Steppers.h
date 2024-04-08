@@ -32,7 +32,7 @@ class Steppers{
       return delay;
     }
     void revStepperSRamp(double rev, int direction, float rps){
-      int ramp_steps = 200;
+      int ramp_steps = 300;
       float stepPS = rps * stepsPerRevolution;
       int terminalStepDelay = (int)(1000000 / stepPS / 2);
       int stepDelay = terminalStepDelay;

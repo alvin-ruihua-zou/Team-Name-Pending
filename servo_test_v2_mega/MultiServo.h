@@ -171,7 +171,7 @@ class MultiServo{
           //Serial.print(control1 * 4);
           //Serial.print(" ");
           
-          if(abs(targetPosition1 - s1.currPosition) < 400 && abs(velocity1) < 5){
+          if(abs(targetPosition1 - s1.currPosition) < 500 && abs(velocity1) < 2){
             stopcount1 += 1;
             s1.mbreak();
           }else{
@@ -206,7 +206,7 @@ class MultiServo{
           // Serial.print(" control2: ");
           // Serial.println(control2);
           drive_motor(s2, control2);
-          if(abs(targetPosition2 - s2.currPosition) < 400 && abs(velocity2) < 5){
+          if(abs(targetPosition2 - s2.currPosition) < 500 && abs(velocity2) < 2){
             stopcount2 += 1;
           }else{
             stopcount2 = 0;

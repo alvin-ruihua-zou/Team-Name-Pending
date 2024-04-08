@@ -86,9 +86,9 @@ class Servo{
       unsigned long initialT = millis();
       currPosition = myEnc.read();
       int timeout = (_timeout_a * (targetPosition - currPosition) / 720 + _timeout_b) * 1000;
-      Serial.println(timeout);
-      Serial.println(targetPosition);
-      Serial.println(currPosition);
+      // Serial.println(timeout);
+      // Serial.println(targetPosition);
+      // Serial.println(currPosition);
       long lastPosition = myEnc.read();
       double lastVelocity = 0.0;
       double instantVelocity = 0.0;
@@ -101,7 +101,6 @@ class Servo{
         currPosition = myEnc.read();
         
         t = millis();
-        Serial.println(t- initialT);
         if(t - initialT > timeout){
           
           break;

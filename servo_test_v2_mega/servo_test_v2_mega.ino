@@ -43,6 +43,7 @@ Servo d2(d2en0, d2en1, d2pwm, 2, 41);
 MultiServo zAxis(s1, s2);
 MultiServo driveTrain(d1,d2);
 Steppers xAxis(s1dir, s1step, s2dir, s2step);
+double theta_target = 0;
 //   avoid using pins with LEDs attached
 
 void setup() {
@@ -82,9 +83,13 @@ double get_voltage(){
   return voltage;
 }
 
+// void correct_theta(){
+//   double theta = driveTrain.dtheta;
+  
+// }
 void drive_till_edge(int ospeed, int max_range){
   double max_speed = 200.0;
-  double correction = 8.0;
+  double correction = 18.0;
   long initPos1 = d1.myEnc.read();
   long initPos2 = d2.myEnc.read();
   long currPos1 = d1.myEnc.read();
@@ -169,6 +174,7 @@ void multi_command()
     Serial.print("executed:");
     Serial.println(command);
     cmd_servo_multi(command);
+    delay(500);
     curr_idx = idx + 1;
     if (cmd.indexOf(':', curr_idx) == -1)
     {
@@ -180,6 +186,7 @@ void multi_command()
       break;
     }
   }
+  Serial.println("finished");
 }
 
 
@@ -217,14 +224,34 @@ void cmd_servo_multi(String cmd)
     long currPosition2 = s2.myEnc.read();
     long tick1 = -rev * 1836 + currPosition1;
     long tick2 = rev * 1836 + currPosition2;
-    zAxis.servo_to(tick1, tick2, 40, 0.3, 0.1);
+    zAxis.servo_to(tick1, tick2, 140, 0.8, 0.1);
   }
   if(dir == "t"){
+    theta_target += rev * 1.34; //1.34 rad per rev
+    double rev_c = (theta_target - driveTrain.dtheta) / 1.34;
+    Serial.print("revc");
+    Serial.println(rev_c);
+    long currPosition1 = d1.myEnc.read();
+    long currPosition2 = d2.myEnc.read();
+    long tick1 = rev_c * 792 + currPosition1;
+    long tick2 = rev_c * 792 + currPosition2;
+    
+    driveTrain.servo_to(tick1, tick2, 150, 2.4, 0.2, true,300);
+    Serial.println("complete");
+  }
+  if(dir == "tu"){
+    // bool correct_theta = false;
+    // if(correct_theta){
+
+    //   double corr_rev = drivedtheta / 1.34; //77degree per rev, hence 1.34 rad per rev
+    //   rev += corr_rev;
+    // }
     long currPosition1 = d1.myEnc.read();
     long currPosition2 = d2.myEnc.read();
     long tick1 = rev * 792 + currPosition1;
     long tick2 = rev * 792 + currPosition2;
-    driveTrain.servo_to(tick1, tick2, 150, 1.4, 0.1, true,500);
+    
+    driveTrain.servo_to(tick1, tick2, 150, 2.4, 0.1, true,300);
     Serial.println("complete");
   }
   if(dir == "fw"){
@@ -232,7 +259,7 @@ void cmd_servo_multi(String cmd)
     long currPosition2 = d2.myEnc.read();
     long tick1 = rev * 792 + currPosition1;
     long tick2 = -rev * 792 + currPosition2;
-    driveTrain.servo_to(tick1, tick2, 140, 0.5, 0.2, true, 400);
+    driveTrain.servo_to(tick1, tick2, 140, 0.6, 0.2, true, 300);
     Serial.println("complete");
   }
   if(dir == "l"){
@@ -256,6 +283,7 @@ void cmd_servo_multi(String cmd)
     s1.myEnc.write(0);
     s2.myEnc.write(0);
     driveTrain.clear_odo();
+    theta_target = 0;
   }
    if(dir == "p"){
     Serial.print("s1: ");
@@ -277,15 +305,15 @@ void cmd_servo_multi(String cmd)
   }
 
   if(dir == "i"){
-    for(int i = 0; i < 4; i++){
-      zAxis.servo_to(4.3 * 1836, -4.3* 1836, 100, 0.4, 0.1);
+    for(int i = 0; i < 1; i++){
+      zAxis.servo_to(4.3 * 1836, -4.3* 1836, 100, 0.6, 0.1);
     delay(200);
     xAxis.revStepperSRamp(6.4, -1, 6 );
     delay(200);
 
     
     
-    zAxis.servo_to(-0.2 * 1836, 0.2 * 1836, 100, 0.4, 0.1);
+    zAxis.servo_to(-0.2 * 1836, 0.2 * 1836, 100, 0.6, 0.1);
     delay(200);
     xAxis.revStepperSRamp(6.4, 1, 6 );
     delay(200);
@@ -304,33 +332,34 @@ void cmd_servo_multi(String cmd)
     
   }
   if(dir == "di"){
-    zAxis.servo_to(-0.2 * 1836, 0.2 * 1836, 100, 0.4, 0.1);
+    zAxis.servo_to(-0.1 * 1836, 0.1 * 1836, 100, 0.6, 0.1);
     delay(200);
     for(int i = 0; i < 1; i++){
-      drive_till_edge(-90, 2000);
+      drive_till_edge(-100, 3000);
       delay(500);                                                                                                                                                                         
-      // long currPosition1 = d1.myEnc.read();
-      // long currPosition2 = d2.myEnc.read();
-      // long tick1 = -0.18 * 792 + currPosition1;
-      // long tick2 = 0.18 * 792 + currPosition2;
-      // driveTrain.servo_to_no_correction(tick1, tick2, 200, 4.5, 0.1, false);
+      long currPosition1 = d1.myEnc.read();
+    long currPosition2 = d2.myEnc.read();
+    long tick1 = -0.18 * 792 + currPosition1;
+    long tick2 = 0.18 * 792 + currPosition2;
+      driveTrain.servo_to(tick1, tick2, 130, 5.5, 0.3, false,50);
 
-      xAxis.revStepperSRamp(6.4, -1, 6 );//frame back
-      delay(200);
+      xAxis.revStepperSRamp(6.2, -1, 4);//frame back
+      delay(800);
 
-      zAxis.servo_to(4.3 * 1836, -4.3* 1836, 100, 0.4, 0.1);//frame down
-      delay(200);
+      zAxis.servo_to(4.5 * 1836, -4.5* 1836, 100, 0.8, 0.1);//frame down
+      delay(800);
 
-      xAxis.revStepperSRamp(6.4, 1, 6 );//bot back
-      delay(200);
+      xAxis.revStepperSRamp(6.4, 1, 4 );//bot back
+      delay(800);
 
-      zAxis.servo_to(-0.2 * 1836, 0.2 * 1836, 100, 0.4, 0.1);//bot down
+      zAxis.servo_to(-0.2 * 1836, 0.2 * 1836, 100, 0.8, 0.1);//bot down
+      delay(800);
+      currPosition1 = d1.myEnc.read();
+      currPosition2 = d2.myEnc.read();
+      tick1 = 2.0 * 792 + currPosition1;
+      tick2 = -2.0 * 792 + currPosition2;
+      driveTrain.servo_to_no_correction(tick1, tick2, 140, 0.9, 0.1, true);//forward to square
       delay(200);
-      
-      // int tick1 = 2.0 * 792 + currPosition1;
-      // int tick2 = -2.0 * 792 + currPosition2;
-      // driveTrain.servo_to_no_correction(tick1, tick2, 140, 0.9, 0.1, true);//forward to square
-      // delay(200);
     }
 
     
@@ -340,11 +369,16 @@ void cmd_servo_multi(String cmd)
     Serial.println(get_voltage());
   }
   if(dir == "dte"){
-    Serial.println("poi");
     drive_till_edge(rev, 2000);
+    delay(200);
+    long currPosition1 = d1.myEnc.read();
+    long currPosition2 = d2.myEnc.read();
+    long tick1 = -0.18 * 792 + currPosition1;
+    long tick2 = 0.18 * 792 + currPosition2;
+    driveTrain.servo_to(tick1, tick2, 130, 5.5, 0.3, false,100);
   }
   if(dir == "odo"){
-    Serial.print("x, y, theta");
+    Serial.println("x, y, theta");
     Serial.println(driveTrain.dx);
     Serial.println(driveTrain.dy);
     Serial.println(driveTrain.dtheta);
