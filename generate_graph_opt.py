@@ -164,7 +164,7 @@ def check_collision(state, prim, car, env):
             and row_c + cell[1] < env.rows
             and 0 <= col_c + cell[0]
             and col_c + cell[0] < env.cols
-            and env.map[row_c + cell[1]][col_c + cell[0]] == 1
+            and env.map[row_c + int(cell[1])][col_c + int(cell[0])] == 1
         ):
             # print(f"state {state} with prim {prim.endpose} collides with {row_c+row},{col_c+col}")
             return False
@@ -668,8 +668,8 @@ def collision_precheck(state, prim, env, p_map):
     for i in range(prim.num_interposes):
         x = state[0] + prim.inter_poses[i][0] / env.resolution
         y = state[1] + prim.inter_poses[i][1] / env.resolution
-        row_c = round(y)
-        col_c = round(x)
+        row_c = int(round(y))
+        col_c = int(round(x))
         if (
             0 <= row_c
             and row_c < env.rows

@@ -7,6 +7,7 @@ from generate_graph_opt import get_path
 import re
 
 
+
 class motionPrim:
     def __init__(
         self, prim_id, start_angle, endpose, costmult, inter_poses, num_interposes
@@ -56,7 +57,7 @@ def get_prims(prims_file):
     return motionPrims(motion_prims, num_prims, resolution, num_angles)
 
 
-arduino = serial.Serial("COM6", 9600, timeout=1)
+arduino = serial.Serial("/dev/ttyUSB0", 9600, timeout=1)
 
 
 prims = get_prims("prims_4angles.txt")
