@@ -6,6 +6,7 @@ import numpy as np
 from generate_graph_opt import get_path
 import re
 
+
 class motionPrim:
     def __init__(
         self, prim_id, start_angle, endpose, costmult, inter_poses, num_interposes
@@ -55,7 +56,7 @@ def get_prims(prims_file):
     return motionPrims(motion_prims, num_prims, resolution, num_angles)
 
 
-arduino = serial.Serial("COM11", 9600, timeout=1)
+arduino = serial.Serial("COM6", 9600, timeout=1)
 
 
 prims = get_prims("prims_4angles.txt")
@@ -65,13 +66,14 @@ for prim in prims.prims:
 
 
 def plan(
-    start=[5, 5, 1],
+    start,
     goal=[88, 120, 1],
     map_size=[114, 122],
     obstacles=[[52, 96, 0, 10], [96, 114, 0, 16], [0, 63, 114, 122]],
 ):
-    start = [5, 5, 1]
     curr_pos = start
+    if start == goal:
+        return None, True
     prim_id_commands = get_path(
         map_size=[114, 122],
         obstacles=[[52, 96, 0, 10], [96, 114, 0, 16], [0, 63, 114, 122]],
@@ -122,16 +124,21 @@ def plan(
         cmd_sequence += "fw" + str(fw_sum) + ":"
     print(cmd_sequence)
     print(cmd_sequence.split(":"))
-    return cmd_sequence.split(":")[0]
+    return cmd_sequence.split(":")[0], False
 
 
 # arduino.write(bytes(cmd_sequence + "\r\n", "utf-8"))
 time.sleep(3)
+steps = 0
+curr_pos = [5, 5, 1]
 while True:
-    cmd = plan()
+    cmd, complete = plan(start=curr_pos)
+    if complete:
+        break
     print(cmd)
     arduino.write(bytes(cmd + ":\r\n", "utf-8"))
-    while True:
+    odom_received = False
+    while not odom_received:
         line = arduino.readline()
         print(line)
         if b"complete" in line:
@@ -139,14 +146,19 @@ while True:
             while True:
                 line = arduino.readline()
                 if b"x, y, theta" in line:
-                    x = str(arduino.readline())
-                    x = float(re.findall("\d+\.\d+",x)[0])
                     y = str(arduino.readline())
-                    y = float(re.findall("\d+\.\d+",y)[0])
+                    y = float(re.findall("\d+\.\d+", y)[0])
+                    x = str(arduino.readline())
+                    x = float(re.findall("\d+\.\d+", x)[0])
                     th = str(arduino.readline())
-                    th = float(re.findall("\d+\.\d+",th)[0])
+                    th = float(re.findall("\d+\.\d+", th)[0])
                     print(x, y, th)
-                    exit()
+                    curr_pos[:2] = [curr_pos[0] + x / 25.4, curr_pos[1] + y / 25.4]
+                    odom_received = True
+                    break
+    steps += 1
+    if steps == 2:
+        exit()
 
 
 exit()
