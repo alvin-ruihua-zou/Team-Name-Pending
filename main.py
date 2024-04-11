@@ -56,8 +56,16 @@ def get_prims(prims_file):
     return motionPrims(motion_prims, num_prims, resolution, num_angles)
 
 
-arduino = serial.Serial("COM6", 9600, timeout=1)
-
+try:
+    arduino = serial.Serial("/dev/ttyUSB0", 9600, timeout=1)
+except:
+    try:
+        arduino = serial.Serial("/dev/ttyUSB1", 9600, timeout=1)
+    except:
+        try:
+            arduino = serial.Serial("COM11", 9600, timeout=1)
+        except:
+            arduino = serial.Serial("COM6", 9600, timeout=1)
 
 prims = get_prims("prims_4angles.txt")
 prims_dict = dict()
@@ -75,10 +83,10 @@ def plan(
     if start == goal:
         return None, None, True
     prim_id_commands = get_path(
-        map_size=[114, 122],
-        obstacles=[[52, 96, 0, 10], [96, 114, 0, 16], [0, 63, 114, 122]],
+        map_size=map_size,
+        obstacles=obstacles,
         start=start,
-        goal=[88, 120, 1],
+        goal=goal,
         prims="prims_4angles.txt",
     )
     prim = prims_dict[prim_id_commands[0]]
@@ -131,7 +139,7 @@ def plan(
         rev = cmd[2:]
         print(rev)
         rev = float(rev)
-        if rev < 1:
+        if rev < 1.2:
             if len(cmd_sequence) > 1:
                 cmd = cmd_sequence[1]
                 prim = prims_dict[prim_id_commands[1]]
@@ -147,47 +155,55 @@ def plan(
     return cmd, curr_pos, False
 
 
-# arduino.write(bytes(cmd_sequence + "\r\n", "utf-8"))
-time.sleep(3)
-steps = 0
-start = [5, 5, 1]
-curr_pos = start
-dx, dy, x_prev, y_prev = 0, 0, 0, 0
-while True:
-    cmd, curr_pos, complete = plan(start=curr_pos)
-    if complete:
-        break
-    print(cmd)
-    arduino.write(bytes(cmd + ":\r\n", "utf-8"))
-    odom_received = False
-    while not odom_received:
-        line = arduino.readline()
-        print(line)
-        if b"complete" in line:
-            arduino.write(bytes("odo:" + "\r\n", "utf-8"))
-            while True:
-                line = arduino.readline()
-                if b"x, y, theta" in line:
-                    y = str(arduino.readline())
-                    y = float(re.findall("\d+\.\d+", y)[0])
-                    dy = y - y_prev
-                    y_prev = y
-                    x = str(arduino.readline())
-                    x = float(re.findall("\d+\.\d+", x)[0])
-                    th = str(arduino.readline())
-                    dx = x - x_prev
-                    x_prev = x
-                    th = float(re.findall("\d+\.\d+", th)[0])
-                    print(x, y, th)
-                    curr_pos[:2] = [start[0] + x / 25.4, start[1] + y / 25.4]
-                    odom_received = True
-                    break
-    # steps += 1
-    # if steps == 2:
-    # exit()
-print("planning complete, start stair climbing")
+# Navigate from start to goal then climb stairs.
+def navigation2climbing():
+    steps = 0
+    start = [5, 5, 1]
+    curr_pos = start
+    dx, dy, x_prev, y_prev = 0, 0, 0, 0
+    while True:
+        cmd, curr_pos, complete = plan(start=curr_pos)
+        if complete:
+            break
+        print(cmd)
+        arduino.write(bytes(cmd + ":\r\n", "utf-8"))
+        odom_received = False
+        while not odom_received:
+            line = arduino.readline()
+            print(line)
+            if b"complete" in line:
+                arduino.write(bytes("odo:" + "\r\n", "utf-8"))
+                while True:
+                    line = arduino.readline()
+                    if b"x, y, theta" in line:
+                        y = str(arduino.readline())
+                        y = float(re.findall("\d+\.\d+", y)[0])
+                        dy = y - y_prev
+                        y_prev = y
+                        x = str(arduino.readline())
+                        x = float(re.findall("\d+\.\d+", x)[0])
+                        th = str(arduino.readline())
+                        dx = x - x_prev
+                        x_prev = x
+                        th = float(re.findall("\d+\.\d+", th)[0])
+                        print(x, y, th)
+                        curr_pos[:2] = [start[0] + x / 25.4, start[1] + y / 25.4]
+                        odom_received = True
+                        break
+        # steps += 1
+        # if steps == 2:
+        # exit()
+    print("planning complete, start stair climbing")
+    input("Start climbing?")
+    arduino.write(bytes("fw2:i:\r\n", "utf-8"))
 
-exit()
-while True:
-    input_str = input("Enter command ")
-    arduino.write(bytes(input_str + "\r\n", "utf-8"))
+
+if __name__ == "__main__":
+    time.sleep(0.5)
+    mode = input("Select mode:\nNavigation + stair climbing [0]\nCommand control [1]")
+    if mode.strip() == "0":
+        navigation2climbing()
+    elif mode.strip() == "1":
+        while True:
+            input_str = input("Enter command ")
+            arduino.write(bytes(input_str + "\r\n", "utf-8"))
