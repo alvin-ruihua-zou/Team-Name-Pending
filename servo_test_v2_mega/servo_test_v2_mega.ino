@@ -224,7 +224,7 @@ void cmd_servo_multi(String cmd)
     long currPosition2 = s2.myEnc.read();
     long tick1 = -rev * 1836 + currPosition1;
     long tick2 = rev * 1836 + currPosition2;
-    zAxis.servo_to(tick1, tick2, 140, 0.8, 0.1);
+    zAxis.servo_to(tick1, tick2, 140, 0.6, 0.2);
   }
   if(dir == "t"){
     theta_target += rev * 1.34; //1.34 rad per rev
@@ -259,7 +259,7 @@ void cmd_servo_multi(String cmd)
     long currPosition2 = d2.myEnc.read();
     long tick1 = rev * 792 + currPosition1;
     long tick2 = -rev * 792 + currPosition2;
-    driveTrain.servo_to(tick1, tick2, 140, 0.6, 0.2, true, 300);
+    driveTrain.servo_to(tick1, tick2, 220, 0.5, 0.2, true, 9900);
     Serial.println("complete");
   }
   if(dir == "l"){
@@ -303,9 +303,20 @@ void cmd_servo_multi(String cmd)
   if(dir == "m"){
     xAxis.revStepperSRamp(6.4, 1, 6 );
   }
-
+  if(dir == "cr"){
+long currPosition1 = d1.myEnc.read();
+    long currPosition2 = d2.myEnc.read();
+    // long tick1 = 0.38 * 792 + currPosition1;
+    // long tick2 = -0.38 * 792 + currPosition2;
+    // driveTrain.servo_to_no_correction(tick1, tick2, 200, 2.9, 0.1, false);
+    // delay(200);
+    long tick1 = 3.3 * 792 + currPosition1;
+    long tick2 = -3.3 * 792 + currPosition2;
+    driveTrain.servo_to_no_correction(tick1, tick2, 160, 1.8, 0.25, true);
+    delay(200);    
+  }
   if(dir == "i"){
-    for(int i = 0; i < 1; i++){
+    for(int i = 0; i < 2; i++){
       zAxis.servo_to(4.3 * 1836, -4.3* 1836, 100, 0.6, 0.1);
     delay(200);
     xAxis.revStepperSRamp(6.4, -1, 6 );
@@ -320,13 +331,13 @@ void cmd_servo_multi(String cmd)
 
     long currPosition1 = d1.myEnc.read();
     long currPosition2 = d2.myEnc.read();
-    long tick1 = 0.68 * 792 + currPosition1;
-    long tick2 = -0.68 * 792 + currPosition2;
-    driveTrain.servo_to_no_correction(tick1, tick2, 200, 1.9, 0.1, false);
-    delay(200);
-    tick1 = 2.0 * 792 + currPosition1;
-    tick2 = -2.0 * 792 + currPosition2;
-    driveTrain.servo_to_no_correction(tick1, tick2, 140, 0.9, 0.1, true);
+    // long tick1 = 0.38 * 792 + currPosition1;
+    // long tick2 = -0.38 * 792 + currPosition2;
+    // driveTrain.servo_to_no_correction(tick1, tick2, 200, 2.9, 0.1, false);
+    // delay(200);
+    long tick1 = 3.3 * 792 + currPosition1;
+    long tick2 = -3.3 * 792 + currPosition2;
+    driveTrain.servo_to_no_correction(tick1, tick2, 160, 1.8, 0.25, true);
     delay(200);
     }
     
@@ -346,7 +357,7 @@ void cmd_servo_multi(String cmd)
       xAxis.revStepperSRamp(6.2, -1, 4);//frame back
       delay(800);
 
-      zAxis.servo_to(4.5 * 1836, -4.5* 1836, 100, 0.8, 0.1);//frame down
+      zAxis.servo_to(4.5 * 1836, -4.5* 1836, 100, 0.6, 0.1);//frame down
       delay(800);
 
       xAxis.revStepperSRamp(6.4, 1, 4 );//bot back

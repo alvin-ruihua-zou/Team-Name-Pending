@@ -124,6 +124,10 @@ class MultiServo{
           // Serial.println(dx);
           // Serial.print("Y:");
           // Serial.println(dy);
+          // Serial.print("ds1: ");
+          // Serial.println(d_s1);
+          // Serial.print("ds2: ");
+          // Serial.println(d_s2);
           // Serial.print("Theta:");
           // Serial.println(dtheta);
           dtheta += d_rot;
@@ -136,8 +140,8 @@ class MultiServo{
           instantVelocity1 = double(s1.currPosition - lastPosition1) / double(t - lastT + 0.1) * 1000;
           velocity1 = instantVelocity1;
           double control1 = -p * 0.3* (s1.currPosition - targetPosition1) - d * 0.05 * velocity1;
-          //  Serial.print("curr:");
-          // Serial.println(s1.currPosition);
+          //Serial.print("s1curr:");
+          //Serial.println(s1.currPosition);
           // Serial.print("control bf");
           // Serial.println(control1);
           //Serial.println(ma);
@@ -156,6 +160,10 @@ class MultiServo{
           }
           // Serial.print("velocity1:");
           // Serial.println(velocity1);
+          // Serial.print("velocity (cm/s):");
+          // Serial.print(velocity1 / 792.0 * 19.8);
+          // Serial.print(" at time (s):");
+          // Serial.println(double(t - initialT) / 1000.0);
           // Serial.print(" control1 before: ");
           // Serial.println(control1);
           if(abs(velocity1) > max_speed && velocity1 * control1 > 0){
@@ -165,12 +173,6 @@ class MultiServo{
           // Serial.println(control1);
           
           drive_motor(s1, control1);
-          // if(_enable_current_limit && abs(ma) > _current_limit){
-          //   control1 = chop_current(control1, ma);
-          // }
-          //Serial.print(control1 * 4);
-          //Serial.print(" ");
-          
           if(abs(targetPosition1 - s1.currPosition) < 500 && abs(velocity1) < 2){
             stopcount1 += 1;
             s1.mbreak();
@@ -221,14 +223,16 @@ class MultiServo{
           }
           
           lastVelocity2 = velocity2;
-          //  Serial.print("curr:");
+          //  Serial.print("currs2:");
           // Serial.println(s2.currPosition);
-        //common
-          lastT = t;
-          lastPosition1 = s1.currPosition;
-          lastPosition2 = s2.currPosition;
+        
+          
 
         }
+        //common
+        lastT = t;
+        lastPosition1 = s1.currPosition;
+        lastPosition2 = s2.currPosition;
       
       }
       // Serial.println("done");
@@ -242,6 +246,7 @@ class MultiServo{
       unsigned long t = millis();
       unsigned long initialT = millis();
       unsigned long timeout = (_timeout_a * abs(targetPosition1 - s1.currPosition) / 1836 + _timeout_b) * 1000;
+      double max_speed = 120;
 
       //S1 variables
       long lastPosition1 = s1.currPosition;
@@ -275,10 +280,14 @@ class MultiServo{
           
           if(detect_stall){
             double new_acs_reading = analogRead(d1CurrentPin);
-            _acs_reading1 = _acs_reading1 * 0.94 + 0.06 * new_acs_reading;
+            Serial.print("new acsReading:");
+            Serial.println(new_acs_reading);
+            Serial.print("acsReading:");
+            Serial.println(_acs_reading1);
+            _acs_reading1 = _acs_reading1 * 0.97 + 0.03 * new_acs_reading;
             double amp = abs((_acs_reading1 - _zero) / 13.5);
             double ma = amp * 1000;
-            // Serial.println(ma);
+            Serial.println(ma);
             if(ma > _stall_ma){
               s1.mbreak();
               Serial.println("S1 STALLED");
@@ -288,6 +297,9 @@ class MultiServo{
           
           if(abs(control1) > maxPwm){
             control1 = maxPwm * (control1 / abs(control1));
+          }
+          if(abs(velocity1) > max_speed && velocity1 * control1 > 0){
+            control1 = limit_speed(abs(velocity1)/max_speed, control1);
           }
           drive_motor(s1, control1);
 
@@ -312,7 +324,7 @@ class MultiServo{
 
           if(detect_stall){
             double new_acs_reading = analogRead(d2CurrentPin);
-            _acs_reading2 = _acs_reading2 * 0.94 + 0.06 * new_acs_reading;
+            _acs_reading2 = _acs_reading2 * 0.97 + 0.03 * new_acs_reading;
             double amp = abs((_acs_reading2 - _zero) / 13.5);
             double ma = amp * 1000;
             if(ma > _stall_ma){
@@ -323,6 +335,9 @@ class MultiServo{
           }
           if(abs(control2) > maxPwm){
             control2 = maxPwm * (control2 / abs(control2));
+          }
+          if(abs(velocity2) > max_speed && velocity2 * control2 > 0){
+            control2 = limit_speed(abs(velocity2)/max_speed, control2);
           }
           drive_motor(s2, control2);
           if(abs(targetPosition2 - s2.currPosition) < 400 && abs(velocity2) < 5){
@@ -348,6 +363,8 @@ class MultiServo{
       }
       s1.mbreak();
       s2.mbreak();
+      _acs_reading1 = 512;
+      _acs_reading2 = 512;
     }
   private:
 
@@ -363,7 +380,7 @@ class MultiServo{
     double _acs_reading1 = 512.0;
     double _acs_reading2 = 512.0;
     double _zero = 512.0;
-    double _stall_ma = 1300;
+    double _stall_ma = 720;
     double _current_limit = 1000;
     bool _enable_stall_protection = false;
     bool _enable_current_limit = false;
