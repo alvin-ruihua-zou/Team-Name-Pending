@@ -152,7 +152,7 @@ def plan(
                 return None, None, True
     print(cmd_sequence)
     print(cmd)
-    return cmd, curr_pos, False
+    return cmd_sequence, curr_pos, False
 
 
 # Navigate from start to goal then climb stairs.
@@ -162,7 +162,20 @@ def navigation2climbing():
     curr_pos = start
     dx, dy, x_prev, y_prev = 0, 0, 0, 0
     while True:
-        cmd, curr_pos, complete = plan(start=curr_pos)
+        cmd_sequence, curr_pos, complete = plan(start=curr_pos)
+        cmd = cmd_sequence[0]
+        has_turn = False
+        for c in cmd_sequence:
+            if "t" in c:
+                has_turn = True
+        if has_turn == False:
+            see_stairs = detect_stairs()
+            if see_stairs:
+                print("Stair detected, proceed")
+            else:
+                print("Stair not detected, press key to ignore and continue")
+                input("Start climbing?")
+
         if complete:
             break
         print(cmd)
@@ -196,7 +209,6 @@ def navigation2climbing():
     print("planning complete, start stair climbing")
     input("Start climbing?")
     arduino.write(bytes("fw2:i:\r\n", "utf-8"))
-
 
 if __name__ == "__main__":
     time.sleep(0.5)
