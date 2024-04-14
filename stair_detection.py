@@ -268,14 +268,9 @@ try:
                     else:
                         cv2.line(lines_image, pt1, pt2, (0, 0, 255), 3, cv2.LINE_AA)
 
-                rho_added = []
-                curr_rho = rhos[0]
-                while curr_rho < rhos[-1]:
-                    rho_added.append(curr_rho)
-                    curr_rho += m
-                for i in range(len(rho_added)):
+                for i in range(len(rhos)):
 
-                    rho = rho_added[i]
+                    rho = rhos[i]
                     theta = np.pi / 2
                     a = np.cos(theta)
                     b = np.sin(theta)
@@ -285,8 +280,8 @@ try:
                     pt2 = (int(x0 - 1000 * (-b)), int(y0 - 1000 * (a)))
                     cv2.line(lines_image, pt1, pt2, (0, 255, 255), 3, cv2.LINE_AA)
 
-                # TODO: Fix bounding box stuff
-
+                # Using the middle 1/3 of the image instead of dynamic bounding box
+                """
                 vline_l_exist = len(vert_line_left) == 2
                 vline_r_exist = len(vert_line_right) == 2
                 if not vline_l_exist:
@@ -347,34 +342,45 @@ try:
                     for i in range(len(rhos) - 1):
                         rho = int(rhos[i])
                         rho2 = int(rhos[i + 1])
-                        pixels = depth_image[h - rho2 : h - rho, :]
+                        pixels = depth_image[h - rho2 : h - rho]
                         cv2.rectangle(img_blur, (0, rho), (w, rho2), (255, 0, 0), 2)
                         mean_depth_bbox[i] = np.mean(pixels)
-                    depth_image = bounded_points
-
+                    # depth_image = bounded_points
+                """
                 mean_depth = np.zeros(len(rhos) - 1)
                 for i in range(len(rhos) - 1):
                     rho = int(rhos[i])
                     rho2 = int(rhos[i + 1])
-                    pixels = depth_image[h - rho2 : h - rho, :]
+                    pixels = depth_image[
+                        h - rho2 : h - rho, int(w / 2 - w / 6) : int(w / 2 + w / 6)
+                    ]  # int(w / 2 - w / 6) : int(w / 2 + w / 6)
                     cv2.rectangle(img_blur, (0, rho), (w, rho2), (255, 0, 0), 2)
                     mean_depth[i] = np.mean(pixels)
-                mean_depth = mean_depth * 0.2 + mean_depth_bbox * 0.8
+                mean_depth = mean_depth
                 # print(mean_depth)
-                mean_variance_thres = 0
+                mean_variance_thres_min = 50
+                mean_variance_thres_max = 400
                 if len(mean_depth) > 0:
+                    diff = np.max(mean_depth) - np.min(mean_depth)
                     print(
-                        np.max(mean_depth) - np.min(mean_depth) > mean_variance_thres
+                        diff >= mean_variance_thres_min
+                        and diff <= mean_variance_thres_max
                         and np.sum((mean_depth[:-1] >= mean_depth[1:]))
-                        > int(len(mean_depth) * 2 / 4)
+                        > int(len(mean_depth) / 4),
+                        diff,
                     )
+                else:
+                    print("False not enough lines")
+
         # Show images
         cv2.namedWindow("RealSense Edges", cv2.WINDOW_AUTOSIZE)
         cv2.imshow("RealSense Edges", edges_image)
         cv2.namedWindow("RealSense All Edges", cv2.WINDOW_AUTOSIZE)
         cv2.imshow("RealSense All Edges", all_lines_image)
         cv2.namedWindow("RealSense lines", cv2.WINDOW_AUTOSIZE)
-        cv2.imshow("RealSense lines", lines_image)
+        cv2.imshow(
+            "RealSense lines", lines_image[:, int(w / 2 - w / 6) : int(w / 2 + w / 6)]
+        )
         # cv2.namedWindow("RealSense depth_lines", cv2.WINDOW_AUTOSIZE)
         # cv2.imshow("RealSense depth_lines", depth_lines_image)
         # cv2.namedWindow("RealSense blur", cv2.WINDOW_AUTOSIZE)
