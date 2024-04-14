@@ -37,7 +37,9 @@ class MultiServo{
         servo.mbreak();
       }
     }
-
+    void set_v_thresh(int thresh){
+      _v_thresh = thresh;      
+    }
     void clear_odo(){
       dx = 0;
       dy = 0;
@@ -100,7 +102,6 @@ class MultiServo{
       while((s1Complete && s2Complete) == false){
         t = millis();
         if(t - initialT > timeout){
-          
           break;
         }
         if(ramped){
@@ -117,7 +118,7 @@ class MultiServo{
 
           double d_s2 = -(s2.currPosition - lastPosition2);
           double d_dist = (d_s1 + d_s2)/2 / 792 * 0.0607*3.14;
-          double d_rot = (d_s1 - d_s2) * 3.14 *1.2  / 792 * 0.217;//wheel diameter 6.1cm, wheel base 28cm
+          double d_rot = (d_s1 - d_s2) * 3.14  / 792 * 0.228;//wheel diameter 6.1cm, wheel base 28cm
           dy += d_dist * 1000 * sin(dtheta);
           dx += d_dist * 1000 * cos(dtheta);
           // Serial.print("X:");
@@ -136,54 +137,31 @@ class MultiServo{
 
         //S1 part////////////////////////////////////////////////////////
         if(s1Complete == false){
-          
+          Serial.print("dt is:");
+          Serial.println(t - lastT);
           instantVelocity1 = double(s1.currPosition - lastPosition1) / double(t - lastT + 0.1) * 1000;
           velocity1 = instantVelocity1;
           double control1 = -p * 0.3* (s1.currPosition - targetPosition1) - d * 0.05 * velocity1;
-          //Serial.print("s1curr:");
-          //Serial.println(s1.currPosition);
-          // Serial.print("control bf");
-          // Serial.println(control1);
-          //Serial.println(ma);
-          // Serial.print(instantVelocity);
-          // Serial.print("  ");
-          
-          // Serial.print(velocity);
-          // Serial.print("  ");
-          
-          // Serial.println(s1.currPosition);
-          // Serial.print(" <s1");
-          // Serial.print(targetPosition1);
-          
           if(abs(control1) > maxPwm){
             control1 = maxPwm * (control1 / abs(control1));
           }
-          // Serial.print("velocity1:");
-          // Serial.println(velocity1);
-          // Serial.print("velocity (cm/s):");
-          // Serial.print(velocity1 / 792.0 * 19.8);
-          // Serial.print(" at time (s):");
-          // Serial.println(double(t - initialT) / 1000.0);
-          // Serial.print(" control1 before: ");
-          // Serial.println(control1);
           if(abs(velocity1) > max_speed && velocity1 * control1 > 0){
             control1 = limit_speed(abs(velocity1)/max_speed, control1);
           }
-          // Serial.print(" control1: ");
-          // Serial.println(control1);
           
           drive_motor(s1, control1);
-          if(abs(targetPosition1 - s1.currPosition) < 500 && abs(velocity1) < 2){
+          if(abs(targetPosition1 - s1.currPosition) < 500 && abs(velocity1) < _v_thresh){
             stopcount1 += 1;
             s1.mbreak();
           }else{
             stopcount1 = 0;
           }
-          if(stopcount1 > 10){
+          if(stopcount1 > 6){
               s1Complete = true;
+              Serial.println("s1 breaked staged 2");
               s1.mbreak();
             }
-          if(abs(targetPosition1 - s1.currPosition) < 33 && abs(velocity1) < 10){
+          if(abs(targetPosition1 - s1.currPosition) < 33 && abs(velocity1) < 2 * _v_thresh){
             s1Complete = true;
           }
           
@@ -198,33 +176,26 @@ class MultiServo{
           if(abs(control2) > maxPwm){
             control2 = maxPwm * (control2 / abs(control2));
           }
-          // Serial.print("velocity2:");
-          // Serial.println(velocity2);
-          // Serial.print(" control2 before: ");
-          // Serial.println(control2);
           if(abs(velocity2) > max_speed && velocity2 * control2 > 0){
             control2 = limit_speed(abs(velocity2)/max_speed, control2);
           }
-          // Serial.print(" control2: ");
-          // Serial.println(control2);
           drive_motor(s2, control2);
-          if(abs(targetPosition2 - s2.currPosition) < 500 && abs(velocity2) < 2){
+          if(abs(targetPosition2 - s2.currPosition) < 500 && abs(velocity2) < _v_thresh){
             stopcount2 += 1;
           }else{
             stopcount2 = 0;
           }
-          if(stopcount2 > 10){
+          if(stopcount2 > 6){
               s2Complete = true;
+              Serial.println("s2 breaked staged 2");
               s2.mbreak();
             }
-          if(abs(targetPosition2 - s2.currPosition) < 33 && abs(velocity2) < 10){
+          if(abs(targetPosition2 - s2.currPosition) < 33 && abs(velocity2) < 2 * _v_thresh){
             s2Complete = true;
             s2.mbreak();
           }
           
           lastVelocity2 = velocity2;
-          //  Serial.print("currs2:");
-          // Serial.println(s2.currPosition);
         
           
 
@@ -235,9 +206,12 @@ class MultiServo{
         lastPosition2 = s2.currPosition;
       
       }
-      // Serial.println("done");
       s1.mbreak();
       s2.mbreak();
+      Serial.print("servo done, error1: ");
+      Serial.print(targetPosition1 - s1.currPosition);
+      Serial.print(" error2: ");
+      Serial.println(targetPosition2 - s2.currPosition);
     }
 
     void servo_to_no_correction(long targetPosition1, long targetPosition2, int maxPwm, double p, double d, bool detect_stall = false){\
@@ -380,10 +354,13 @@ class MultiServo{
     double _acs_reading1 = 512.0;
     double _acs_reading2 = 512.0;
     double _zero = 512.0;
-    double _stall_ma = 720;
+    double _stall_ma = 800;
     double _current_limit = 1000;
     bool _enable_stall_protection = false;
     bool _enable_current_limit = false;
+
+    double _v_thresh = 10;
+
 
     
 };
