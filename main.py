@@ -3,8 +3,9 @@
 import serial
 import time
 import numpy as np
-from generate_graph_opt import get_path
 import re
+from generate_graph_opt import get_path
+from stair_detection import detect_stairs
 
 
 class motionPrim:
@@ -173,8 +174,8 @@ def navigation2climbing():
             if see_stairs:
                 print("Stair detected, proceed")
             else:
-                print("Stair not detected, press key to ignore and continue")
-                input("Start climbing?")
+                print("Stair not detected, aborting...")
+                exit()
 
         if complete:
             break
@@ -209,6 +210,7 @@ def navigation2climbing():
     print("planning complete, start stair climbing")
     input("Start climbing?")
     arduino.write(bytes("fw2:i:\r\n", "utf-8"))
+
 
 if __name__ == "__main__":
     time.sleep(0.5)
