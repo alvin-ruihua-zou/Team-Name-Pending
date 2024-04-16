@@ -220,7 +220,10 @@ if __name__ == "__main__":
     time.sleep(0.5)
     mode = input("Select mode:\nNavigation + stair climbing [0]\nCommand control [1]")
     if mode.strip() == "0":
-        navigation2climbing()
+        start = input("starting pos(three numbers with space between): ")
+        start = list(start.split(" "))
+        start = [int(i) for i in start]
+        navigation2climbing(start=start)
     elif mode.strip() == "1":
         while True:
             input_str = input("Enter command ")
