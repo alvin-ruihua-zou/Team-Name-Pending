@@ -160,9 +160,8 @@ def plan(
 
 
 # Navigate from start to goal then climb stairs.
-def navigation2climbing():
+def navigation2climbing(start=[5, 5, 1]):
     steps = 0
-    start = [5, 5, 1]
     curr_pos = start
     dx, dy, x_prev, y_prev = 0, 0, 0, 0
     while True:
