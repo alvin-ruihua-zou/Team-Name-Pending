@@ -76,7 +76,7 @@ for prim in prims.prims:
 
 def plan(
     start,
-    goal=[88, 120, 1],
+    goal=[88, 100, 1],
     map_size=[114, 122],
     obstacles=[[52, 96, 0, 10], [96, 114, 0, 16], [0, 63, 104, 122]],
 ):
