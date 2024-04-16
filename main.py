@@ -224,10 +224,13 @@ if __name__ == "__main__":
     elif mode.strip() == "1":
         while True:
             input_str = input("Enter command ")
-            arduino.write(bytes(input_str + "\r\n", "utf-8"))
-            completed = False
-            while not completed:
-                line = arduino.readline()
-                print(line)
-                if b"finished" in line:
-                    completed = True
+            if input_str.strip() == "cam":
+                print(f"Stairs detected: {detect_stairs()}")
+            else:
+                arduino.write(bytes(input_str + "\r\n", "utf-8"))
+                completed = False
+                while not completed:
+                    line = arduino.readline()
+                    print(line)
+                    if b"finished" in line:
+                        completed = True
