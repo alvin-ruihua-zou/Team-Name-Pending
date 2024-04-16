@@ -167,6 +167,14 @@ def navigation2climbing(start=[5, 5, 1]):
     while True:
         print("before planing, curr pos is", curr_pos)
         cmd_sequence, curr_pos, complete, cmd = plan(start=curr_pos)
+        if complete:
+            see_stairs = detect_stairs()
+            if see_stairs:
+                print("Stair detected, proceed")
+            else:
+                print("Stair not detected, aborting...")
+                exit()
+            break
         has_turn = False
         for c in cmd_sequence:
             if "t" in c:
@@ -179,8 +187,6 @@ def navigation2climbing(start=[5, 5, 1]):
                 print("Stair not detected, aborting...")
                 exit()
 
-        if complete:
-            break
         print("executing", cmd)
         arduino.write(bytes(cmd + ":\r\n", "utf-8"))
         odom_received = False
