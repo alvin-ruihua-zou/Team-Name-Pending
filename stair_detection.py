@@ -145,14 +145,15 @@ def detect_stairs():
                     mean_variance_thres_max = 400
                     if len(mean_depth) > 0:
                         diff = np.max(mean_depth) - np.min(mean_depth)
-                        print(
+                        stair_detected = (
                             diff >= mean_variance_thres_min
                             and diff <= mean_variance_thres_max
                             and np.sum((mean_depth[:-1] >= mean_depth[1:]))
-                            > int(len(mean_depth) / 4),
-                            diff,
+                            > int(len(mean_depth) / 4)
                         )
-                        stair_frames += 1.0
+                        print(stair_detected, diff)
+                        if stair_detected:
+                            stair_frames += 1.0
                     else:
                         print("False not enough lines")
             valid_frames += 1.0
