@@ -163,6 +163,7 @@ def navigation2climbing():
     curr_pos = start
     dx, dy, x_prev, y_prev = 0, 0, 0, 0
     while True:
+        print("before planing, curr pos is", curr_pos)
         cmd_sequence, curr_pos, complete = plan(start=curr_pos)
         cmd = cmd_sequence[0]
         has_turn = False
@@ -207,6 +208,7 @@ def navigation2climbing():
         # steps += 1
         # if steps == 2:
         # exit()
+        print("after executing, curr pos is", curr_pos)
     print("planning complete, start stair climbing")
     input("Start climbing?")
     arduino.write(bytes("fw2:i:\r\n", "utf-8"))

@@ -779,11 +779,11 @@ def get_path(map_size, obstacles, start, goal, prims="prims_8angles.txt"):
     for row in range(len(env.map)):
         arr = np.array(env.map[row])
         disp_map.append(arr.tolist())
-    plt.imshow(disp_map, cmap="gray_r", origin="lower")
-    plt.plot(np.array(traj_x) / prims.resolution, np.array(traj_y) / prims.resolution)
-    plt.gca().set_aspect("equal")
+    # plt.imshow(disp_map, cmap="gray_r", origin="lower")
+    # plt.plot(np.array(traj_x) / prims.resolution, np.array(traj_y) / prims.resolution)
+    # plt.gca().set_aspect("equal")
 
-    plt.savefig("traj_imposed.png")
+    # plt.savefig("traj_imposed.png")
 
     print(f"Time to load prim: {end_prim-start_prim} seconds")
     print(f"Time to load env: {end_env-start_env} seconds")
