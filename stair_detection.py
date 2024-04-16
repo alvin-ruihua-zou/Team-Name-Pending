@@ -163,6 +163,7 @@ def detect_stairs():
 
     # Check if the ratio of stair frames is above some threshold
     threshold = 0.7
+    print(stair_frames, valid_frames, stair_frames / valid_frames)
     return (stair_frames / valid_frames) >= threshold
 
 
