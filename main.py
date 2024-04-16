@@ -86,7 +86,7 @@ def plan(
         and start[2] == goal[2]
     ):
         print("Within radius to stairs")
-        return None, None, None, True
+        return None, None, True, None
     prim_id_commands = get_path(
         map_size=map_size,
         obstacles=obstacles,
@@ -155,7 +155,7 @@ def plan(
                 ]
             else:
                 print("Close enough to stairs")
-                return None, None, None, True
+                return None, None, True, None
     print(cmd_sequence)
     print(cmd)
     return cmd_sequence, curr_pos, False, cmd
