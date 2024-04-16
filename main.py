@@ -82,9 +82,10 @@ def plan(
 ):
     curr_pos = start
     if (
-        np.linalg.norm(np.array(start[:2]) - np.array(goal[:2])) < 15
+        np.linalg.norm(np.array(start[:2]) - np.array(goal[:2])) < 10
         and start[2] == goal[2]
     ):
+        print("Within radius to stairs")
         return None, None, None, True
     prim_id_commands = get_path(
         map_size=map_size,
@@ -153,6 +154,7 @@ def plan(
                     prim.endpose[2],
                 ]
             else:
+                print("Close enough to stairs")
                 return None, None, None, True
     print(cmd_sequence)
     print(cmd)
