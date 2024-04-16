@@ -81,8 +81,11 @@ def plan(
     obstacles=[[52, 96, 0, 10], [96, 114, 0, 16], [0, 63, 104, 122]],
 ):
     curr_pos = start
-    if start == goal or np.linalg.norm(np.array(start[:2]) - np.array(goal[:2])) < 15:
-        return None, None, True
+    if (
+        np.linalg.norm(np.array(start[:2]) - np.array(goal[:2])) < 15
+        and start[2] == goal[2]
+    ):
+        return None, None, None, True
     prim_id_commands = get_path(
         map_size=map_size,
         obstacles=obstacles,
@@ -150,7 +153,7 @@ def plan(
                     prim.endpose[2],
                 ]
             else:
-                return None, None, True
+                return None, None, None, True
     print(cmd_sequence)
     print(cmd)
     return cmd_sequence, curr_pos, False, cmd
