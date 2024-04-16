@@ -81,7 +81,7 @@ def plan(
     obstacles=[[52, 96, 0, 10], [96, 114, 0, 16], [0, 63, 104, 122]],
 ):
     curr_pos = start
-    if start == goal or np.linalg.norm(start[:2] - goal[:2]) < 5:
+    if start == goal or np.linalg.norm(np.array(start[:2]) - np.array(goal[:2])) < 5:
         return None, None, True
     prim_id_commands = get_path(
         map_size=map_size,
