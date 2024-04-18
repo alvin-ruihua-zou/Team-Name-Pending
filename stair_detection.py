@@ -138,7 +138,7 @@ def detect_stairs():
             img_gray = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
             # Blur the image for better edge detection
             img_blur = cv2.GaussianBlur(img_gray, (5, 5), 0)
-            edges_image = cv2.Canny(image=img_blur, threshold1=10, threshold2=20)
+            edges_image = cv2.Canny(image=img_blur, threshold1=50, threshold2=70)
             lines = cv2.HoughLines(edges_image, 1, np.pi / 180, 120, None, 0, 0)
 
             tolerance = np.pi / 10
