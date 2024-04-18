@@ -144,7 +144,7 @@ def plan(
         rev = cmd[2:]
         print(rev)
         rev = float(rev)
-        if rev < 1.2:
+        if rev < 1:
             if len(cmd_sequence) > 1:
                 cmd = cmd_sequence[1]
                 prim = prims_dict[prim_id_commands[1]]
@@ -164,11 +164,22 @@ def plan(
 # Navigate from start to goal then climb stairs.
 def navigation2climbing(start=[5, 5, 1]):
     steps = 0
+    goal = [88, 100, 1]
+    temp_goal = goal
+    # Define temp goal 0.5 meters away from goal.
+    if goal[2] == 0:
+        temp_goal[0] -= 5
+    elif goal[2] == 1:
+        temp_goal[1] -= 5
+    elif goal[2] == 2:
+        temp_goal[0] += 5
+    elif goal[2] == 3:
+        temp_goal[1] += 5
     curr_pos = start
     dx, dy, x_prev, y_prev = 0, 0, 0, 0
     while True:
         print("before planing, curr pos is", curr_pos)
-        cmd_sequence, curr_pos, complete, cmd = plan(start=curr_pos)
+        cmd_sequence, curr_pos, complete, cmd = plan(start=curr_pos, goal=temp_goal)
         if complete:
             see_stairs = detect_stairs()
             if see_stairs:
@@ -218,6 +229,8 @@ def navigation2climbing(start=[5, 5, 1]):
         # if steps == 2:
         # exit()
         print("after executing, curr pos is", curr_pos)
+    # Move from temp goal to goal
+    arduino.write(bytes("fw2.5:\r\n", "utf-8"))
     print("planning complete, start stair climbing")
     input("Start climbing?")
     arduino.write(bytes("fw2:i:\r\n", "utf-8"))
