@@ -213,6 +213,32 @@ def detect_stairs():
 
 
 if __name__ == "__main__":
+    pipeline = rs.pipeline()
+    config = rs.config()
+
+    # Get device product line for setting a supporting resolution
+    pipeline_wrapper = rs.pipeline_wrapper(pipeline)
+    pipeline_profile = config.resolve(pipeline_wrapper)
+    device = pipeline_profile.get_device()
+    device_product_line = str(device.get_info(rs.camera_info.product_line))
+
+    found_rgb = False
+    for s in device.sensors:
+        if s.get_info(rs.camera_info.name) == "RGB Camera":
+            found_rgb = True
+            break
+    if not found_rgb:
+        print("The demo requires Depth camera with Color sensor")
+        exit(0)
+
+    config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
+    config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+
+    colorizer = rs.colorizer()
+    colorizer.set_option(rs.option.color_scheme, 0)
+
+    # Start streaming
+    pipeline.start(config)
     try:
         while True:
 
@@ -220,6 +246,7 @@ if __name__ == "__main__":
             frames = pipeline.wait_for_frames()
             depth_frame = frames.get_depth_frame()
             color_frame = frames.get_color_frame()
+
             if not depth_frame or not color_frame:
                 continue
 
@@ -228,12 +255,16 @@ if __name__ == "__main__":
             color_image = np.asanyarray(color_frame.get_data())
 
             depth_image = np.asanyarray(colorizer.colorize(depth_frame).get_data())
-
+            h = depth_image.shape[0]
+            w = depth_image.shape[1]
             # Convert to graycsale
             img_gray = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
-            # Blur the image for better edge detection
+
+            # Threshold for edge detection
+            # NSH 50, 70
+            # Techspark 10 20
             img_blur = cv2.GaussianBlur(img_gray, (5, 5), 0)
-            edges_image = cv2.Canny(image=img_blur, threshold1=10, threshold2=20)
+            edges_image = cv2.Canny(image=img_blur, threshold1=50, threshold2=70)
             lines = cv2.HoughLines(edges_image, 1, np.pi / 180, 120, None, 0, 0)
             lines_image = cv2.cvtColor(edges_image, cv2.COLOR_GRAY2BGR)
             all_lines_image = lines_image.copy()
