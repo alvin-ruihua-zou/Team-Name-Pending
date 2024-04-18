@@ -285,6 +285,8 @@ if __name__ == "__main__":
             input_str = input("Enter command ")
             if input_str.strip() == "cam":
                 print(f"Stairs detected: {detect_stairs()}")
+            elif input_str.strip() == "dist":
+                print(f"Distance to wall: {check_dist()}")
             else:
                 arduino.write(bytes(input_str + "\r\n", "utf-8"))
                 completed = False

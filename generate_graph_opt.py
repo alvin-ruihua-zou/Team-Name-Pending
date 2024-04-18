@@ -366,7 +366,7 @@ def generate_graph(prims, prims_highres, env, start_state, goal_state, car, p_ma
                                 new_node.inopen = True
                                 graph.nodes[new_node.id].inopen = True
                                 open_q.put(new_node)
-    #print(graph.nodes[-1], new_node, goal_state)
+    # print(graph.nodes[-1], new_node, goal_state)
     return graph
 
 
@@ -713,7 +713,7 @@ def inches_to_resolution(inches, res):
 
 
 # start and goal are entered as inches
-def get_path(map_size, obstacles, start, goal, prims="prims_8angles.txt"):
+def get_path(map_size, obstacles, start, goal, prims="prims_4angles.txt"):
     start_prim = time.time()
     prims = get_prims(prims)
     prims_highres = prims
@@ -730,7 +730,7 @@ def get_path(map_size, obstacles, start, goal, prims="prims_8angles.txt"):
         "map.txt",
         obstacles,
     )
-    car = Car(0.1, 0.1)
+    car = Car(0.2, 0.2)
     start_env = time.time()
     env = load_env("map.txt", prims.resolution)
 
@@ -795,7 +795,7 @@ def get_path(map_size, obstacles, start, goal, prims="prims_8angles.txt"):
 if __name__ == "__main__":
 
     start_prim = time.time()
-    prims = get_prims("prims_8angles.txt")
+    prims = get_prims("prims_4angles.txt")
     prims_highres = prims
     # prims_highres = get_prims("prim_highres.txt")  # unicycle_prims.mprim
     end_prim = time.time()
@@ -803,17 +803,13 @@ if __name__ == "__main__":
     # print(f"startpose: {prim.inter_poses[0]}endpose: {prim.endpose}\n")
     # exit()
 
-    # obstacles = [[440,442,60,84],[440,460,60,62],[440,460,82,84],[100,120,0,50],[200,210,30,100],[250,260,0,70],[300,310,30,100]]
     # obstacles: [x1,x2,y1,y2], origin bottom left
-    obstacles = [[52, 96, 0, 10], [96, 114, 0, 16], [0, 63, 114, 122]]
-    # obstacles = [[20,25,0,200],[25,80,190,200],[95,100,100,250],[50,100,150,155],
-    #              [50,200,50,70],[230,450,30,170],[350,355,280,325],[130,370,325,330],[60,400,450,460],[200,500,360,370],[140,350,280,290],[130,140,70,300],[50,100,230,240],[60,70,240,480],[200,500,200,210],[140,150,0,50]]
+    # 2nd floor: [[51, 61, 0, 15]] 1st floor: [[52, 96, 0, 10], [96, 114, 0, 16], [0, 63, 104, 122]]
+    obstacles = [[52, 96, 0, 10], [96, 114, 0, 16], [0, 63, 104, 122]]
     obstacles = np.array(obstacles)
     obstacles = inches_to_resolution(obstacles, prims.resolution)
-    # obstacles = np.vstack([obstacles, obstacles+500])
 
-    # create_map([500,500],'map_big.txt',obstacles)
-
+    # 2nd floor [112, 73] 1st floor [114, 122]
     create_map(
         np.round(inches_to_resolution(np.array([114, 122]), prims.resolution)).astype(
             int
@@ -821,7 +817,7 @@ if __name__ == "__main__":
         "map_big.txt",
         obstacles,
     )
-    car = Car(0.1, 0.1)
+    car = Car(0.2, 0.2)
     start_env = time.time()
     env = load_env("map_big.txt", prims.resolution)
 
@@ -829,14 +825,18 @@ if __name__ == "__main__":
     p_map = create_pmap(env, car)
 
     end_env = time.time()
-    start = [0, 0, 0]
+    start = [
+        np.round(inches_to_resolution(4, env.resolution)).astype(int),
+        np.round(inches_to_resolution(4, env.resolution)).astype(int),
+        1,
+    ]
     # goal = [160,20,8]
     # goal = [480,100,0]
     # goal = [300,480,14]
     goal = [
         np.round(inches_to_resolution(88, env.resolution)).astype(int),
-        np.round(inches_to_resolution(120, env.resolution)).astype(int),
-        2,
+        np.round(inches_to_resolution(100, env.resolution)).astype(int),
+        1,
     ]
     print(
         goal,
