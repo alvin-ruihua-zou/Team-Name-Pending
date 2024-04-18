@@ -238,7 +238,7 @@ void cmd_servo_multi(String cmd)
     long tick1 = rev_c * 792 + currPosition1;
     long tick2 = rev_c * 792 + currPosition2;
     
-    driveTrain.servo_to(tick1, tick2, 150, 3.6, 0.20, true,200);
+    driveTrain.servo_to(tick1, tick2, 200, 4.0, 0.20, true,200);
     Serial.println("complete");
     Serial.println(rev_c);
     delay(400);    
@@ -263,7 +263,7 @@ void cmd_servo_multi(String cmd)
     long currPosition2 = d2.myEnc.read();
     long tick1 = rev * 792 + currPosition1;
     long tick2 = -rev * 792 + currPosition2;
-    driveTrain.servo_to(tick1, tick2, 140, 0.5, 0.2, true, 600);
+    driveTrain.servo_to(tick1, tick2, 140, 0.8, 0.2, true, 600);
     Serial.println("complete");
   }
   if(dir == "l"){
@@ -333,17 +333,27 @@ long currPosition1 = d1.myEnc.read();
     xAxis.revStepperSRamp(6.4, 1, 6 );
     delay(200);
 
-    // long currPosition1 = d1.myEnc.read();
-    // long currPosition2 = d2.myEnc.read();
-    // // long tick1 = 0.38 * 792 + currPosition1;
-    // // long tick2 = -0.38 * 792 + currPosition2;
-    // // driveTrain.servo_to_no_correction(tick1, tick2, 200, 2.9, 0.1, false);
-    // // delay(200);
-    // long tick1 = 3.6 * 792 + currPosition1;
-    // long tick2 = -3.6 * 792 + currPosition2;
-    // driveTrain.servo_to_no_correction(tick1, tick2, 160, 1.9, 0.25, true);
+    long currPosition1 = d1.myEnc.read();
+    long currPosition2 = d2.myEnc.read();
+    // long tick1 = 0.38 * 792 + currPosition1;
+    // long tick2 = -0.38 * 792 + currPosition2;
+    // driveTrain.servo_to_no_correction(tick1, tick2, 200, 2.9, 0.1, false);
     // delay(200);
+    long tick1 = 3.6 * 792 + currPosition1;
+    long tick2 = -3.6 * 792 + currPosition2;
+    driveTrain.servo_to_no_correction(tick1, tick2, 160, 1.9, 0.25, true);
+    delay(200);
     }
+    
+  }
+  if(dir == "step"){
+      zAxis.servo_to(4.3 * 1836, -4.3* 1836, 100, 0.6, 0.1);
+    delay(200);
+    xAxis.revStepperSRamp(6.4, -1, 6 );
+    delay(200);
+    zAxis.servo_to(-0.2 * 1836, 0.2 * 1836, 100, 0.6, 0.1);
+    delay(200);
+    xAxis.revStepperSRamp(6.4, 1, 6 );
     
   }
   if(dir == "di"){
