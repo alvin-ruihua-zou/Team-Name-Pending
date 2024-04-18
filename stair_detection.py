@@ -41,6 +41,50 @@ def intersection(line1, line2):
     return [x0, y0]
 
 
+def check_dist():
+    pipeline = rs.pipeline()
+    config = rs.config()
+
+    # Get device product line for setting a supporting resolution
+    pipeline_wrapper = rs.pipeline_wrapper(pipeline)
+    pipeline_profile = config.resolve(pipeline_wrapper)
+    device = pipeline_profile.get_device()
+    device_product_line = str(device.get_info(rs.camera_info.product_line))
+
+    found_rgb = False
+    for s in device.sensors:
+        if s.get_info(rs.camera_info.name) == "RGB Camera":
+            found_rgb = True
+            break
+    if not found_rgb:
+        print("The demo requires Depth camera with Color sensor")
+        exit(0)
+
+    config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
+    config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+
+    colorizer = rs.colorizer()
+    colorizer.set_option(rs.option.color_scheme, 0)
+
+    # Start streaming
+    pipeline.start(config)
+    try:
+        frames = pipeline.wait_for_frames()
+        mean_dist = 0
+        frames = 10
+        for i in range(frames):
+            depth_frame = frames.get_depth_frame()
+            h, w = depth_frame.shape
+            mean_dist += depth_frame[
+                int(h / 2 - 10) : int(h / 2 + 10), int(w / 2 - 10) : int(w / 2 + 10)
+            ]
+        mean_dist /= frames
+    finally:
+        # Stop streaming
+        pipeline.stop()
+    return mean_dist
+
+
 def detect_stairs():
     # Configure depth and color streams
     pipeline = rs.pipeline()

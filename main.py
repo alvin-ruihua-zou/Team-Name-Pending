@@ -5,7 +5,7 @@ import time
 import numpy as np
 import re
 from generate_graph_opt import get_path
-from stair_detection import detect_stairs
+from stair_detection import detect_stairs, check_dist
 
 
 class motionPrim:
@@ -161,6 +161,48 @@ def plan(
     return cmd_sequence, curr_pos, False, cmd
 
 
+# Navigate from top to stairs to goal
+def climbing2navigate(map, resolution, goal):
+    # First determine robot's position by checking distance to wall.
+    # Turn right 90 degrees, check dist to wall, turn left 90 degrees
+    arduino.write(bytes("t1.15:\r\n", "utf-8"))
+    dist = check_dist()
+    arduino.write(bytes("t-1.15:\r\n", "utf-8"))
+    # Convert dist from mm to m, then to map resolution
+    dist = int(dist / 1000 * resolution)
+    # Assume robot is at the edge of the stairs.
+    start = [map[0] - dist, 4, 1]
+    curr_pos = start
+    while True:
+        print("before planing, curr pos is", curr_pos)
+        cmd_sequence, curr_pos, complete, cmd = plan(start=curr_pos, goal=goal)
+        if complete:
+            break
+        print("executing", cmd)
+        arduino.write(bytes(cmd + ":\r\n", "utf-8"))
+        odom_received = False
+        while not odom_received:
+            line = arduino.readline()
+            print(line)
+            if b"complete" in line:
+                arduino.write(bytes("odo:" + "\r\n", "utf-8"))
+                while True:
+                    line = arduino.readline()
+                    if b"x, y, theta" in line:
+                        y = str(arduino.readline())
+                        y = float(re.findall("\d+\.\d+", y)[0])
+                        x = str(arduino.readline())
+                        x = float(re.findall("\d+\.\d+", x)[0])
+                        th = str(arduino.readline())
+                        th = float(re.findall("\d+\.\d+", th)[0])
+                        print(x, y, th)
+                        curr_pos[:2] = [start[0] + x / 25.4, start[1] + y / 25.4]
+                        odom_received = True
+                        break
+
+        print("after executing, curr pos is", curr_pos)
+
+
 # Navigate from start to goal then climb stairs.
 def navigation2climbing(start=[5, 5, 1]):
     steps = 0
@@ -176,7 +218,6 @@ def navigation2climbing(start=[5, 5, 1]):
     elif goal[2] == 3:
         temp_goal[1] += 5
     curr_pos = start
-    dx, dy, x_prev, y_prev = 0, 0, 0, 0
     while True:
         print("before planing, curr pos is", curr_pos)
         cmd_sequence, curr_pos, complete, cmd = plan(start=curr_pos, goal=temp_goal)
@@ -188,17 +229,17 @@ def navigation2climbing(start=[5, 5, 1]):
                 print("Stair not detected, aborting...")
                 exit()
             break
-        has_turn = False
-        for c in cmd_sequence:
-            if "t" in c:
-                has_turn = True
-        if has_turn == False:
-            see_stairs = detect_stairs()
-            if see_stairs:
-                print("Stair detected, proceed")
-            else:
-                print("Stair not detected, aborting...")
-                exit()
+        # has_turn = False
+        # for c in cmd_sequence:
+        #     if "t" in c:
+        #         has_turn = True
+        # if has_turn == False:
+        #     see_stairs = detect_stairs()
+        #     if see_stairs:
+        #         print("Stair detected, proceed")
+        #     else:
+        #         print("Stair not detected, aborting...")
+        #         exit()
 
         print("executing", cmd)
         arduino.write(bytes(cmd + ":\r\n", "utf-8"))
@@ -213,27 +254,22 @@ def navigation2climbing(start=[5, 5, 1]):
                     if b"x, y, theta" in line:
                         y = str(arduino.readline())
                         y = float(re.findall("\d+\.\d+", y)[0])
-                        dy = y - y_prev
-                        y_prev = y
                         x = str(arduino.readline())
                         x = float(re.findall("\d+\.\d+", x)[0])
                         th = str(arduino.readline())
-                        dx = x - x_prev
-                        x_prev = x
                         th = float(re.findall("\d+\.\d+", th)[0])
                         print(x, y, th)
                         curr_pos[:2] = [start[0] + x / 25.4, start[1] + y / 25.4]
                         odom_received = True
                         break
-        # steps += 1
-        # if steps == 2:
-        # exit()
+
         print("after executing, curr pos is", curr_pos)
     # Move from temp goal to goal
     arduino.write(bytes("fw2.5:\r\n", "utf-8"))
     print("planning complete, start stair climbing")
     input("Start climbing?")
-    arduino.write(bytes("fw2:i:\r\n", "utf-8"))
+    # Move fw2 to ensure robot is against stairs, then climb to final step, then climb final step, then move fw2
+    arduino.write(bytes("fw2:i9:step:fw2:\r\n", "utf-8"))
 
 
 if __name__ == "__main__":
