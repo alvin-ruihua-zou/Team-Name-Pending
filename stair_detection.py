@@ -75,9 +75,11 @@ def check_dist():
         for i in range(frames):
             depth_frame = frames.get_depth_frame()
             h, w = depth_frame.shape
-            mean_dist += depth_frame[
-                int(h / 2 - 10) : int(h / 2 + 10), int(w / 2 - 10) : int(w / 2 + 10)
-            ]
+            mean_dist += np.mean(
+                depth_frame[
+                    int(h / 2 - 10) : int(h / 2 + 10), int(w / 2 - 10) : int(w / 2 + 10)
+                ]
+            )
         mean_dist /= frames
     finally:
         # Stop streaming
