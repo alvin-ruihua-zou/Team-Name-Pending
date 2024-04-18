@@ -162,7 +162,8 @@ def plan(
 
 
 # Navigate from top to stairs to goal
-def climbing2navigate(map, resolution, goal):
+def climbing2navigate(map, resolution=0.1, goal=[20, 4]):
+
     # First determine robot's position by checking distance to wall.
     # Turn right 90 degrees, check dist to wall, turn left 90 degrees
     arduino.write(bytes("t1.15:\r\n", "utf-8"))
@@ -175,7 +176,9 @@ def climbing2navigate(map, resolution, goal):
     curr_pos = start
     while True:
         print("before planing, curr pos is", curr_pos)
-        cmd_sequence, curr_pos, complete, cmd = plan(start=curr_pos, goal=goal)
+        cmd_sequence, curr_pos, complete, cmd = plan(
+            start=curr_pos, goal=goal, obstacles=obstacles, map_size=map
+        )
         if complete:
             break
         print("executing", cmd)
@@ -204,9 +207,13 @@ def climbing2navigate(map, resolution, goal):
 
 
 # Navigate from start to goal then climb stairs.
-def navigation2climbing(start=[5, 5, 1]):
+def navigation2climbing(
+    start=[5, 5, 1],
+    goal=[88, 100, 1],
+    obstacles=[[52, 96, 0, 10], [96, 114, 0, 16], [0, 63, 104, 122]],
+    map_size=[114, 122],
+):
     steps = 0
-    goal = [88, 100, 1]
     temp_goal = goal
     # Define temp goal 0.5 meters away from goal.
     if goal[2] == 0:
@@ -272,6 +279,9 @@ def navigation2climbing(start=[5, 5, 1]):
     arduino.write(bytes("fw2:i9:step:fw2:\r\n", "utf-8"))
 
 
+# NSH staircase map:
+# map size: [103, 50] obstacles: [[84,103,0,15]]
+
 if __name__ == "__main__":
     time.sleep(0.5)
     mode = input("Select mode:\nNavigation + stair climbing [0]\nCommand control [1]")
@@ -279,7 +289,12 @@ if __name__ == "__main__":
         start = input("starting pos(three numbers with space between): ")
         start = list(start.split(" "))
         start = [int(i) for i in start]
-        navigation2climbing(start=start)
+        navigation2climbing(
+            start=start,
+            goal=[78, 48, 1],
+            obstacles=[[84, 103, 0, 15]],
+            map_size=[103, 50],
+        )
     elif mode.strip() == "1":
         while True:
             input_str = input("Enter command ")
