@@ -229,6 +229,7 @@ def navigation2climbing(
     while True:
         print("before planing, curr pos is", curr_pos)
         cmd_sequence, curr_pos, complete, cmd = plan(start=curr_pos, goal=temp_goal)
+        print("counter is: ", counter)
         if counter == 0:
             max_len = len(cmd_sequence) + 1
             counter = 1
