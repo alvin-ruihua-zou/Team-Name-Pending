@@ -202,7 +202,7 @@ def detect_stairs():
                             stair_frames += 1.0
                     else:
                         print("False not enough lines")
-            valid_frames += 1.0
+                    valid_frames += 1.0
 
     finally:
         # Stop streaming
