@@ -109,15 +109,22 @@ def plan(
     for i in range(len(prim_id_commands)):
         id = prim_id_commands[i]
         prim = prims_dict[id]
-        # fw command if angle doesn't change
+        # fw/bw command if angle doesn't change
         if prim.start_angle == prim.endpose[2]:
             if prim.endpose[0] == 0:
                 dist = abs(prim.endpose[1]) * arduino_fw_conversion
             else:
                 dist = abs(prim.endpose[0]) * arduino_fw_conversion
-            cmd = "fw" + str(dist)
-            if prev_cmd != "fw":
-                prev_cmd = "fw"
+            # bw
+            if prim.endpose[0] < 0 or prim.endpose[1] < 0:
+                cmd = "bw" + str(dist)
+                if prev_cmd != "bw":
+                    prev_cmd = "bw"
+            # fw
+            else:
+                cmd = "fw" + str(dist)
+                if prev_cmd != "fw":
+                    prev_cmd = "fw"
 
         # t command since robot is turning
         else:
@@ -128,16 +135,29 @@ def plan(
                 * arduino_t_conversion
             )
             cmd = f"t{angle:.3f}"
-        if cmd[:2] == "fw" and prev_cmd == "fw":
+        if cmd[0] == "t":
+            cmd_sequence += prev_cmd + str(fw_sum) + ":" + cmd + ":"
+            fw_sum = 0
+            prev_cmd = "t"
+        elif cmd[:2] == "fw" and prev_cmd == "fw":
             # Append cmd if it's the last one
             if i == len(prim_id_commands) - 1:
                 cmd_sequence += cmd + ":"
             else:
                 fw_sum += dist
+        elif cmd[:2] == "bw" and prev_cmd == "bw":
+            # Append cmd if it's the last one
+            if i == len(prim_id_commands) - 1:
+                cmd_sequence += cmd + ":"
+            else:
+                fw_sum += dist
+        # TODO: Switching between fw and bw
+
         else:
-            cmd_sequence += "fw" + str(fw_sum) + ":" + cmd + ":"
+            cmd_sequence += prev_cmd + str(fw_sum) + ":"
+            prev_cmd = cmd
             fw_sum = 0
-            prev_cmd = "t"
+
     cmd_sequence = cmd_sequence.split(":")[:-1]
     cmd = cmd_sequence[0]
     if "fw" in cmd:
@@ -225,11 +245,10 @@ def navigation2climbing(
     elif goal[2] == 3:
         temp_goal[1] += 5
     curr_pos = start
-    counter = 0;
-    max_len = 999;
+    counter = 0
+    max_len = 999
     while True:
-        
-       
+
         if counter >= max_len:
             if curr_pos[2] == temp_goal[2]:
                 complete = True
@@ -244,8 +263,7 @@ def navigation2climbing(
             counter = 1
         else:
             counter += 1
-       
-        
+
         if complete:
             see_stairs = detect_stairs()
             if see_stairs:
