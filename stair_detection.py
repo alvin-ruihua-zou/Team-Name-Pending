@@ -69,18 +69,19 @@ def check_dist():
     # Start streaming
     pipeline.start(config)
     try:
-        frames = pipeline.wait_for_frames()
         mean_dist = 0
-        frames = 10
-        for i in range(frames):
+        frames_num = 10
+        for i in range(frames_num):
+            frames = pipeline.wait_for_frames()
             depth_frame = frames.get_depth_frame()
-            h, w = depth_frame.shape
+            depth_image = np.asanyarray(colorizer.colorize(depth_frame).get_data())
+            h, w = depth_image.shape[:2]
             mean_dist += np.mean(
-                depth_frame[
+                depth_image[
                     int(h / 2 - 10) : int(h / 2 + 10), int(w / 2 - 10) : int(w / 2 + 10)
                 ]
             )
-        mean_dist /= frames
+        mean_dist /= frames_num
     finally:
         # Stop streaming
         pipeline.stop()
@@ -138,7 +139,7 @@ def detect_stairs():
             img_gray = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
             # Blur the image for better edge detection
             img_blur = cv2.GaussianBlur(img_gray, (5, 5), 0)
-            edges_image = cv2.Canny(image=img_blur, threshold1=10, threshold2=20)
+            edges_image = cv2.Canny(image=img_blur, threshold1=50, threshold2=70)
             lines = cv2.HoughLines(edges_image, 1, np.pi / 180, 120, None, 0, 0)
 
             tolerance = np.pi / 10
@@ -202,7 +203,7 @@ def detect_stairs():
                             stair_frames += 1.0
                     else:
                         print("False not enough lines")
-            valid_frames += 1.0
+                    valid_frames += 1.0
 
     finally:
         # Stop streaming

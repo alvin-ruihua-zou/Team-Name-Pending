@@ -82,7 +82,7 @@ def plan(
 ):
     curr_pos = start
     if (
-        np.linalg.norm(np.array(start[:2]) - np.array(goal[:2])) < 10
+        np.sum((np.array(start[:2]) - np.array(goal[:2])) ** 2) < 15
         and start[2] == goal[2]
     ):
         print("Within radius to stairs")
@@ -162,15 +162,16 @@ def plan(
 
 
 # Navigate from top to stairs to goal
-def climbing2navigate(map, resolution=0.1, goal=[20, 4]):
+def climbing2navigate(map, obstacles, resolution=0.1, goal=[20, 4]):
 
     # First determine robot's position by checking distance to wall.
     # Turn right 90 degrees, check dist to wall, turn left 90 degrees
-    arduino.write(bytes("t1.15:\r\n", "utf-8"))
-    dist = check_dist()
     arduino.write(bytes("t-1.15:\r\n", "utf-8"))
-    # Convert dist from mm to m, then to map resolution
-    dist = int(dist / 1000 * resolution)
+    dist = check_dist()
+    arduino.write(bytes("t1.15:\r\n", "utf-8"))
+    # Convert dist from cm to m, then to map resolution
+    dist = int(dist / 100.0 / resolution)
+    print(dist)
     # Assume robot is at the edge of the stairs.
     start = [map[0] - dist, 4, 1]
     curr_pos = start
@@ -225,11 +226,10 @@ def navigation2climbing(
     elif goal[2] == 3:
         temp_goal[1] += 5
     curr_pos = start
-    counter = 0;
-    max_len = 999;
+    counter = 0
+    max_len = 999
     while True:
-        
-       
+
         if counter >= max_len:
             if curr_pos[2] == temp_goal[2]:
                 complete = True
@@ -244,8 +244,7 @@ def navigation2climbing(
             counter = 1
         else:
             counter += 1
-       
-        
+
         if complete:
             see_stairs = detect_stairs()
             if see_stairs:
@@ -300,7 +299,7 @@ def navigation2climbing(
     print("planning complete, start stair climbing")
     input("Start climbing?")
     # Move fw2 to ensure robot is against stairs, then climb to final step, then climb final step, then move fw2
-    arduino.write(bytes("fw2:i9:step:fw2:\r\n", "utf-8"))
+    arduino.write(bytes("fw2:i11:step:fw2:\r\n", "utf-8"))
 
 
 # NSH staircase map:
@@ -308,7 +307,9 @@ def navigation2climbing(
 
 if __name__ == "__main__":
     time.sleep(0.5)
-    mode = input("Select mode:\nNavigation + stair climbing [0]\nCommand control [1]")
+    mode = input(
+        "Select mode:\nNavigation + stair climbing [0]\nCommand control [1]\nclimbing to navigation [2] "
+    )
     if mode.strip() == "0":
         start = input("starting pos(three numbers with space between): ")
         start = list(start.split(" "))
@@ -316,7 +317,7 @@ if __name__ == "__main__":
         navigation2climbing(
             start=start,
             goal=[78, 48, 1],
-            obstacles=[[84, 103, 0, 15]],
+            obstacles=[[84, 103, 0, 15], [0, 40, 45, 50]],
             map_size=[103, 50],
         )
     elif mode.strip() == "1":
@@ -325,7 +326,9 @@ if __name__ == "__main__":
             if input_str.strip() == "cam":
                 print(f"Stairs detected: {detect_stairs()}")
             elif input_str.strip() == "dist":
-                print(f"Distance to wall: {check_dist()}")
+                dist = check_dist()
+                dist = int(dist / 100.0 / 0.01)
+                print(f"Distance to wall: {dist}")
             else:
                 arduino.write(bytes(input_str + "\r\n", "utf-8"))
                 completed = False
@@ -334,3 +337,9 @@ if __name__ == "__main__":
                     print(line)
                     if b"finished" in line:
                         completed = True
+    elif mode.strip() == "2":
+        climbing2navigate(
+            map=[103, 58],
+            obstacles=[[46, 54, 0, 15]],
+            goal=[20, 5, 3],
+        )
