@@ -93,7 +93,7 @@ def plan(
         obstacles=obstacles,
         start=start,
         goal=goal,
-        prims="prims_4angles.txt",
+        prims="prims_4angles_forward_only.txt",
     )
     prim = prims_dict[prim_id_commands[0]]
     curr_pos = [
