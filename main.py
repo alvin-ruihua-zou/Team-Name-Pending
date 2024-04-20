@@ -134,7 +134,10 @@ def plan(
             )
             cmd = f"t{angle:.3f}"
         if cmd[0] == "t":
-            cmd_sequence += prev_cmd + str(fw_sum) + ":" + cmd + ":"
+            if i == 0:
+                cmf_sequence = cmd + ":"
+            else:
+                cmd_sequence += prev_cmd + str(fw_sum) + ":" + cmd + ":"
             fw_sum = 0
             prev_cmd = "t"
         elif cmd[:2] == "fw" and prev_cmd == "fw":
