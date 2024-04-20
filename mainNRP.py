@@ -232,33 +232,6 @@ def navigation2climbing(
     print("curr pose:", curr_pos, "goal pos:", temp_goal)
     cmd_sequence, curr_pos, complete, cmd = plan(start=curr_pos, goal=temp_goal)
     for cmd in cmd_sequence:
-        
-       
-        if counter >= max_len:
-            if curr_pos[2] == temp_goal[2]:
-                complete = True
-
-        if counter == 0:
-            max_len = len(cmd_sequence) + 1
-            counter = 1
-        else:
-            counter += 1
-       
-        
-        if complete:
-            see_stairs = detect_stairs()
-            if see_stairs:
-                print("Stair detected, proceed")
-            else:
-                while True:
-                    print("Stair not detected, aborting...")
-                    choice = input("r to retry, o to override and proceed")
-                    if choice == "r":
-                        continue
-                    if choice == "o":
-                         break
-
-            break
         # has_turn = False
         # for c in cmd_sequence:
         #     if "t" in c:
@@ -294,6 +267,17 @@ def navigation2climbing(
                         break
 
         print("after executing, curr pos is", curr_pos)
+    see_stairs = detect_stairs()
+    if see_stairs:
+        print("Stair detected, proceed")
+    else:
+        while True:
+            print("Stair not detected, aborting...")
+            choice = input("r to retry, o to override and proceed")
+            if choice == "r":
+                continue
+            if choice == "o":
+                    break
     # Move from temp goal to goal
     arduino.write(bytes("fw2.5:\r\n", "utf-8"))
     print("planning complete, start stair climbing")
