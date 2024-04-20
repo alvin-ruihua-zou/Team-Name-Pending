@@ -169,8 +169,8 @@ def climbing2navigate(map, obstacles, resolution=0.1, goal=[20, 4]):
     arduino.write(bytes("t-1.15:\r\n", "utf-8"))
     dist = check_dist()
     arduino.write(bytes("t1.15:\r\n", "utf-8"))
-    # Convert dist from mm to m, then to map resolution
-    dist = int(dist / 1000.0 / resolution)
+    # Convert dist from cm to m, then to map resolution
+    dist = int(dist / 100.0 / resolution)
     print(dist)
     # Assume robot is at the edge of the stairs.
     start = [map[0] - dist, 4, 1]
@@ -321,7 +321,7 @@ if __name__ == "__main__":
                 print(f"Stairs detected: {detect_stairs()}")
             elif input_str.strip() == "dist":
                 dist = check_dist()
-                dist = int(dist / 1000.0 / 0.01)
+                dist = int(dist / 100.0 / 0.01)
                 print(f"Distance to wall: {dist}")
             else:
                 arduino.write(bytes(input_str + "\r\n", "utf-8"))
