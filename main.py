@@ -81,6 +81,7 @@ def plan(
     obstacles=[[52, 96, 0, 10], [96, 114, 0, 16], [0, 63, 104, 122]],
 ):
     curr_pos = start
+    print(f"Dist to goal: {np.sum((np.array(start[:2]) - np.array(goal[:2])) ** 2)}")
     if (
         np.sum((np.array(start[:2]) - np.array(goal[:2])) ** 2) < 15
         and start[2] == goal[2]
@@ -135,7 +136,10 @@ def plan(
             else:
                 fw_sum += dist
         else:
-            cmd_sequence += "fw" + str(fw_sum) + ":" + cmd + ":"
+            if fw_sum == 0:
+                cmd_sequence += cmd + ":"
+            else:
+                cmd_sequence += "fw" + str(fw_sum) + ":" + cmd + ":"
             fw_sum = 0
             prev_cmd = "t"
     cmd_sequence = cmd_sequence.split(":")[:-1]
@@ -250,14 +254,8 @@ def navigation2climbing(
             if see_stairs:
                 print("Stair detected, proceed")
             else:
-                while True:
-                    print("Stair not detected, aborting...")
-                    choice = input("r to retry, o to override and proceed")
-                    if choice == "r":
-                        continue
-                    if choice == "o":
-                         break
-
+                print("Stair not detected, aborting...")
+                exit()
             break
         # has_turn = False
         # for c in cmd_sequence:
@@ -308,7 +306,7 @@ def navigation2climbing(
 if __name__ == "__main__":
     time.sleep(0.5)
     mode = input(
-        "Select mode:\nNavigation + stair climbing [0]\nCommand control [1]\nclimbing to navigation [2] "
+        "Select mode:\nNavigation + stair climbing [0]\nCommand control [1]\nclimbing to navigation [2]\nComplete demo [3] "
     )
     if mode.strip() == "0":
         start = input("starting pos(three numbers with space between): ")
@@ -338,6 +336,21 @@ if __name__ == "__main__":
                     if b"finished" in line:
                         completed = True
     elif mode.strip() == "2":
+        climbing2navigate(
+            map=[103, 58],
+            obstacles=[[46, 54, 0, 15]],
+            goal=[20, 5, 3],
+        )
+    elif mode.strip() == "3":
+        start = input("starting pos(three numbers with space between): ")
+        start = list(start.split(" "))
+        start = [int(i) for i in start]
+        navigation2climbing(
+            start=start,
+            goal=[78, 48, 1],
+            obstacles=[[84, 103, 0, 15], [0, 40, 45, 50]],
+            map_size=[103, 50],
+        )
         climbing2navigate(
             map=[103, 58],
             obstacles=[[46, 54, 0, 15]],
