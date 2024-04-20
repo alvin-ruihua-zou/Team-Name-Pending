@@ -69,10 +69,10 @@ def check_dist():
     # Start streaming
     pipeline.start(config)
     try:
-        frames = pipeline.wait_for_frames()
         mean_dist = 0
         frames_num = 10
         for i in range(frames_num):
+            frames = pipeline.wait_for_frames()
             depth_frame = frames.get_depth_frame()
             depth_image = np.asanyarray(colorizer.colorize(depth_frame).get_data())
             h, w = depth_image.shape[:2]
