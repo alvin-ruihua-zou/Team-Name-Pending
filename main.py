@@ -334,6 +334,6 @@ if __name__ == "__main__":
     elif mode.strip() == "2":
         climbing2navigate(
             map=[103, 58],
-            obstacles=[[48, 52, 0, 5]],
+            obstacles=[[46, 54, 0, 15]],
             goal=[20, 5, 3],
         )
