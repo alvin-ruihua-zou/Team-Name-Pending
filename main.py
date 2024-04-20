@@ -162,7 +162,7 @@ def plan(
 
 
 # Navigate from top to stairs to goal
-def climbing2navigate(map, resolution=0.1, goal=[20, 4]):
+def climbing2navigate(map, obstacles, resolution=0.1, goal=[20, 4]):
 
     # First determine robot's position by checking distance to wall.
     # Turn right 90 degrees, check dist to wall, turn left 90 degrees
@@ -171,6 +171,7 @@ def climbing2navigate(map, resolution=0.1, goal=[20, 4]):
     arduino.write(bytes("t-1.15:\r\n", "utf-8"))
     # Convert dist from mm to m, then to map resolution
     dist = int(dist / 1000 * resolution)
+    print(dist)
     # Assume robot is at the edge of the stairs.
     start = [map[0] - dist, 4, 1]
     curr_pos = start
@@ -300,7 +301,9 @@ def navigation2climbing(
 
 if __name__ == "__main__":
     time.sleep(0.5)
-    mode = input("Select mode:\nNavigation + stair climbing [0]\nCommand control [1]")
+    mode = input(
+        "Select mode:\nNavigation + stair climbing [0]\nCommand control [1]\nclimbing to navigation [2] "
+    )
     if mode.strip() == "0":
         start = input("starting pos(three numbers with space between): ")
         start = list(start.split(" "))
@@ -326,3 +329,9 @@ if __name__ == "__main__":
                     print(line)
                     if b"finished" in line:
                         completed = True
+    elif mode.strip() == "2":
+        climbing2navigate(
+            map=[103, 58],
+            obstacles=[[48, 52, 0, 5]],
+            goal=[20, 5, 3],
+        )
