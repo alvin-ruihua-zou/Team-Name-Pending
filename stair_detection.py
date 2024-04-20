@@ -75,7 +75,7 @@ def check_dist():
         for i in range(frames_num):
             depth_frame = frames.get_depth_frame()
             depth_image = np.asanyarray(colorizer.colorize(depth_frame).get_data())
-            h, w = depth_image.shape
+            h, w = depth_image.shape[:2]
             mean_dist += np.mean(
                 depth_image[
                     int(h / 2 - 10) : int(h / 2 + 10), int(w / 2 - 10) : int(w / 2 + 10)
