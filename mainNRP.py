@@ -283,7 +283,7 @@ def navigation2climbing(
     print("planning complete, start stair climbing")
     input("Start climbing?")
     # Move fw2 to ensure robot is against stairs, then climb to final step, then climb final step, then move fw2
-    arduino.write(bytes("fw2:i9:step:fw2:\r\n", "utf-8"))
+    arduino.write(bytes("fw3:i11:step:fw2:\r\n", "utf-8"))
 
 
 # NSH staircase map:
