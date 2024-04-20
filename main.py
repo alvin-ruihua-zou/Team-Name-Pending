@@ -324,7 +324,7 @@ if __name__ == "__main__":
         navigation2climbing(
             start=start,
             goal=[78, 48, 1],
-            obstacles=[[84, 103, 0, 15]],
+            obstacles=[[84, 103, 0, 15], [0, 40, 45, 50]],
             map_size=[103, 50],
         )
     elif mode.strip() == "1":
