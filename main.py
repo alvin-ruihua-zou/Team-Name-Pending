@@ -118,10 +118,12 @@ def plan(
             # bw
             if prim.endpose[0] < 0 or prim.endpose[1] < 0:
                 cmd = "bw" + str(dist)
+
             # fw
             else:
                 cmd = "fw" + str(dist)
-
+            if i == 0:
+                prev_cmd = cmd[:2]
         # t command since robot is turning
         else:
             angle = (
