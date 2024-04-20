@@ -82,7 +82,7 @@ def plan(
 ):
     curr_pos = start
     if (
-        np.linalg.norm(np.array(start[:2]) - np.array(goal[:2])) < 10
+        np.linalg.norm(np.array(start[:2]) - np.array(goal[:2])) < 15
         and start[2] == goal[2]
     ):
         print("Within radius to stairs")
