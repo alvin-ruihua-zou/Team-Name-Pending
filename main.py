@@ -306,7 +306,7 @@ def navigation2climbing(
 if __name__ == "__main__":
     time.sleep(0.5)
     mode = input(
-        "Select mode:\nNavigation + stair climbing [0]\nCommand control [1]\nclimbing to navigation [2] "
+        "Select mode:\nNavigation + stair climbing [0]\nCommand control [1]\nclimbing to navigation [2]\nComplete demo [3] "
     )
     if mode.strip() == "0":
         start = input("starting pos(three numbers with space between): ")
@@ -336,6 +336,21 @@ if __name__ == "__main__":
                     if b"finished" in line:
                         completed = True
     elif mode.strip() == "2":
+        climbing2navigate(
+            map=[103, 58],
+            obstacles=[[46, 54, 0, 15]],
+            goal=[20, 5, 3],
+        )
+    elif mode.strip() == "3":
+        start = input("starting pos(three numbers with space between): ")
+        start = list(start.split(" "))
+        start = [int(i) for i in start]
+        navigation2climbing(
+            start=start,
+            goal=[78, 48, 1],
+            obstacles=[[84, 103, 0, 15], [0, 40, 45, 50]],
+            map_size=[103, 50],
+        )
         climbing2navigate(
             map=[103, 58],
             obstacles=[[46, 54, 0, 15]],
