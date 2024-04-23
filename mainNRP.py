@@ -10,10 +10,13 @@ from stair_detection import detect_stairs, check_dist
 
 def wait_arduino():
     completed = False
-    while not completed:
+    finished = False
+    while not (completed and finished):
         line = arduino.readline()
         print(line)
         if b"finished" in line:
+            finished = True
+        if b"completed" in line:
             completed = True
     return
 
