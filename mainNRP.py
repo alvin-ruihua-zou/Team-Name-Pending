@@ -184,12 +184,13 @@ def climbing2navigate(map, obstacles, resolution=0.1, goal=[20, 4]):
     arduino.write(bytes("t-0.95:\r\n", "utf-8"))
     wait_arduino()
     dist = check_dist()
+    time.sleep(0.1)
     arduino.write(bytes("t0.95:\r\n", "utf-8"))
     wait_arduino()
     # Convert dist from cm to m, then to map resolution
     dist = int(dist / 100.0 / resolution)
     # dist = 10
-    print(dist)
+    print(f"Calculated distance: {dist}")
     # Assume robot is at the edge of the stairs.
     start = [map[0] - dist, 4, 1]
     curr_pos = start
