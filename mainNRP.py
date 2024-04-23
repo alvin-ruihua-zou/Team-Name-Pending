@@ -216,6 +216,9 @@ def climbing2navigate(map, obstacles, resolution=0.1, goal=[20, 4]):
                         curr_pos[:2] = [start[0] + x / 25.4, start[1] + y / 25.4]
                         odom_received = True
                         break
+                    else:
+                        arduino.write(bytes("odo:" + "\r\n", "utf-8"))
+                        time.sleep(1)
 
 
 # Navigate from start to goal then climb stairs.
