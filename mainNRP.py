@@ -178,14 +178,14 @@ def climbing2navigate(map, obstacles, resolution=0.1, goal=[20, 4]):
 
     # First determine robot's position by checking distance to wall.
     # Turn right 90 degrees, check dist to wall, turn left 90 degrees
-    arduino.write(bytes("t-1.15:\r\n", "utf-8"))
-    # dist = check_dist()
+    arduino.write(bytes("t-1.05:\r\n", "utf-8"))
     wait_arduino()
-    arduino.write(bytes("t1.15:\r\n", "utf-8"))
+    dist = check_dist()
+    arduino.write(bytes("t1.05:\r\n", "utf-8"))
     wait_arduino()
     # Convert dist from cm to m, then to map resolution
-    # dist = int(dist / 100.0 / resolution)
-    dist = 10
+    dist = int(dist / 100.0 / resolution)
+    # dist = 10
     print(dist)
     # Assume robot is at the edge of the stairs.
     start = [map[0] - dist, 4, 1]
@@ -272,13 +272,12 @@ def navigation2climbing(
         #         exit()
 
         print("executing", cmd)
-        arduino.write(bytes(cmd + ":\r\n", "utf-8"))
+        arduino.write(bytes(cmd + ":odo:\r\n", "utf-8"))
         odom_received = False
         while not odom_received:
             line = arduino.readline()
             print(line)
             if b"complete" in line:
-                arduino.write(bytes("odo:" + "\r\n", "utf-8"))
                 while True:
                     line = arduino.readline()
                     if b"x, y, theta" in line:
