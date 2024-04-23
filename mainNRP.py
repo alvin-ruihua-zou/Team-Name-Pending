@@ -169,11 +169,11 @@ def climbing2navigate(map, obstacles, resolution=0.1, goal=[20, 4]):
     # First determine robot's position by checking distance to wall.
     # Turn right 90 degrees, check dist to wall, turn left 90 degrees
     arduino.write(bytes("t-1.15:\r\n", "utf-8"))
-    dist = 10
     # dist = check_dist()
     arduino.write(bytes("t1.15:\r\n", "utf-8"))
     # Convert dist from cm to m, then to map resolution
     dist = int(dist / 100.0 / resolution)
+    dist = 10
     print(dist)
     # Assume robot is at the edge of the stairs.
     start = [map[0] - dist, 4, 1]
