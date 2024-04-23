@@ -305,11 +305,11 @@ def navigation2climbing(
             if choice == "o":
                 break
     # Move from temp goal to goal
-    arduino.write(bytes("fw2.5:\r\n", "utf-8"))
+    arduino.write(bytes("fw3:\r\n", "utf-8"))
     print("planning complete, start stair climbing")
     input("Start climbing?")
     # Move fw2 to ensure robot is against stairs, then climb to final step, then climb final step, then move fw2
-    arduino.write(bytes("fw3:i11:step:fw2:\r\n", "utf-8"))
+    arduino.write(bytes("fw5:i11:step:fw2:\r\n", "utf-8"))
     wait_arduino()
 
 
