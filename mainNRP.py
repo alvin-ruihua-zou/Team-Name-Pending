@@ -104,7 +104,7 @@ def plan(
     arduino_fw_conversion = prims.resolution / 0.2
     arduino_t_conversion = 1 / (78 * np.pi / 180)  # 78 degrees is one full rotation
     # New value for testing
-    arduino_t_conversion = 1 / 1.45
+    arduino_t_conversion = 1 / 1.49
     cmd_sequence = ""
     prev_cmd = ""
     fw_sum = 0
