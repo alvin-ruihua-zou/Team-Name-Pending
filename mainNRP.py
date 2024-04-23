@@ -8,6 +8,15 @@ from generate_graph_opt import get_path
 from stair_detection import detect_stairs, check_dist
 
 
+def wait_arduino():
+    while not completed:
+        line = arduino.readline()
+        print(line)
+        if b"finished" in line:
+            completed = True
+    return
+
+
 class motionPrim:
     def __init__(
         self, prim_id, start_angle, endpose, costmult, inter_poses, num_interposes
@@ -170,8 +179,9 @@ def climbing2navigate(map, obstacles, resolution=0.1, goal=[20, 4]):
     # Turn right 90 degrees, check dist to wall, turn left 90 degrees
     arduino.write(bytes("t-1.15:\r\n", "utf-8"))
     # dist = check_dist()
-    time.sleep(1)
+    wait_arduino()
     arduino.write(bytes("t1.15:\r\n", "utf-8"))
+    wait_arduino()
     # Convert dist from cm to m, then to map resolution
     # dist = int(dist / 100.0 / resolution)
     dist = 10
