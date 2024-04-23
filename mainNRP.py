@@ -370,3 +370,7 @@ if __name__ == "__main__":
             obstacles=[[46, 54, 0, 15]],
             goal=[20, 5, 3],
         )
+    elif mode.strip() == "4":
+        arduino.write(bytes("step:fw2:\r\n", "utf-8"))
+        wait_arduino()
+        arduino.write(bytes("t-1.05:\r\n", "utf-8"))
