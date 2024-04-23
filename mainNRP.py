@@ -314,7 +314,7 @@ def navigation2climbing(
     print("planning complete, start stair climbing")
     input("Start climbing?")
     # Move fw2 to ensure robot is against stairs, then climb to final step, then climb final step, then move fw2
-    arduino.write(bytes("fw5:i11:step:fw2:\r\n", "utf-8"))
+    arduino.write(bytes("fw5:i11:step:fw3:\r\n", "utf-8"))
     wait_arduino()
 
 
@@ -376,7 +376,7 @@ if __name__ == "__main__":
             goal=[10, 5, 3],
         )
     elif mode.strip() == "4":
-        arduino.write(bytes("i1:step:fw2:\r\n", "utf-8"))
+        arduino.write(bytes("i1:step:fw3:\r\n", "utf-8"))
         wait_arduino()
         climbing2navigate(
             map=[103, 58],
