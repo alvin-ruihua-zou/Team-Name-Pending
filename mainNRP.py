@@ -16,7 +16,7 @@ def wait_arduino():
         print(line)
         if b"finished" in line:
             finished = True
-        if b"completed" in line:
+        if b"complete" in line:
             completed = True
     return
 
