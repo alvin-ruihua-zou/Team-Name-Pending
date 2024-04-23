@@ -370,14 +370,14 @@ if __name__ == "__main__":
         time.sleep(1)
         climbing2navigate(
             map=[103, 58],
-            obstacles=[[46, 54, 0, 15]],
-            goal=[20, 5, 3],
+            obstacles=[[46, 54, 0, 25]],
+            goal=[10, 5, 3],
         )
     elif mode.strip() == "4":
         arduino.write(bytes("step:fw2:\r\n", "utf-8"))
         wait_arduino()
         climbing2navigate(
             map=[103, 58],
-            obstacles=[[46, 54, 0, 15]],
-            goal=[20, 5, 3],
+            obstacles=[[46, 54, 0, 25]],
+            goal=[10, 5, 3],
         )
