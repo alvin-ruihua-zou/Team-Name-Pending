@@ -376,6 +376,7 @@ if __name__ == "__main__":
             goal=[10, 5, 3],
         )
         wait_arduino()
+        time.sleep(1)
         arduino.write(bytes("fw2:\r\n", "utf-8"))
     elif mode.strip() == "4":
         arduino.write(bytes("i1:step:fw3:\r\n", "utf-8"))
