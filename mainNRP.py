@@ -364,6 +364,7 @@ if __name__ == "__main__":
             obstacles=[[84, 103, 0, 15], [0, 40, 45, 50]],
             map_size=[103, 50],
         )
+        time.sleep(1)
         climbing2navigate(
             map=[103, 58],
             obstacles=[[46, 54, 0, 15]],
