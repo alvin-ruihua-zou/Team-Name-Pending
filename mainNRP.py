@@ -195,13 +195,13 @@ def climbing2navigate(map, obstacles, resolution=0.1, goal=[20, 4]):
         #         exit()
 
         print("executing", cmd)
-        arduino.write(bytes(cmd + ":\r\n", "utf-8"))
+        arduino.write(bytes(cmd + ":odo:\r\n", "utf-8"))
         odom_received = False
         while not odom_received:
             line = arduino.readline()
             print(line)
             if b"complete" in line:
-                arduino.write(bytes("odo:" + "\r\n", "utf-8"))
+                # arduino.write(bytes("odo:" + "\r\n", "utf-8"))
                 while True:
                     line = arduino.readline()
                     print(line)
@@ -216,9 +216,9 @@ def climbing2navigate(map, obstacles, resolution=0.1, goal=[20, 4]):
                         curr_pos[:2] = [start[0] + x / 25.4, start[1] + y / 25.4]
                         odom_received = True
                         break
-                    else:
-                        arduino.write(bytes("odo:" + "\r\n", "utf-8"))
-                        time.sleep(1)
+                    # else:
+                    #     arduino.write(bytes("odo:" + "\r\n", "utf-8"))
+                    #     time.sleep(1)
 
 
 # Navigate from start to goal then climb stairs.
