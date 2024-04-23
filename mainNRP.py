@@ -177,13 +177,20 @@ def climbing2navigate(map, obstacles, resolution=0.1, goal=[20, 4]):
     # Assume robot is at the edge of the stairs.
     start = [map[0] - dist, 4, 1]
     curr_pos = start
-    while True:
-        print("before planing, curr pos is", curr_pos)
-        cmd_sequence, curr_pos, complete, cmd = plan(
-            start=curr_pos, goal=goal, obstacles=obstacles, map_size=map
-        )
-        if complete:
-            break
+    cmd_sequence, curr_pos, complete, cmd = plan(start=curr_pos, goal=goal)
+    for cmd in cmd_sequence:
+        # has_turn = False
+        # for c in cmd_sequence:
+        #     if "t" in c:
+        #         has_turn = True
+        # if has_turn == False:
+        #     see_stairs = detect_stairs()
+        #     if see_stairs:
+        #         print("Stair detected, proceed")
+        #     else:
+        #         print("Stair not detected, aborting...")
+        #         exit()
+
         print("executing", cmd)
         arduino.write(bytes(cmd + ":\r\n", "utf-8"))
         odom_received = False
@@ -205,8 +212,6 @@ def climbing2navigate(map, obstacles, resolution=0.1, goal=[20, 4]):
                         curr_pos[:2] = [start[0] + x / 25.4, start[1] + y / 25.4]
                         odom_received = True
                         break
-
-        print("after executing, curr pos is", curr_pos)
 
 
 # Navigate from start to goal then climb stairs.
