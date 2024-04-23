@@ -225,8 +225,8 @@ def navigation2climbing(
     elif goal[2] == 3:
         temp_goal[1] += 5
     curr_pos = start
-    counter = 0;
-    max_len = 999;
+    counter = 0
+    max_len = 999
     print("cmd_sequence len", max_len)
     print("counter is: ", counter)
     print("curr pose:", curr_pos, "goal pos:", temp_goal)
@@ -277,7 +277,7 @@ def navigation2climbing(
             if choice == "r":
                 continue
             if choice == "o":
-                    break
+                break
     # Move from temp goal to goal
     arduino.write(bytes("fw2.5:\r\n", "utf-8"))
     print("planning complete, start stair climbing")
@@ -291,7 +291,9 @@ def navigation2climbing(
 
 if __name__ == "__main__":
     time.sleep(0.5)
-    mode = input("Select mode:\nNavigation + stair climbing [0]\nCommand control [1]")
+    mode = input(
+        "Select mode:\nNavigation + stair climbing [0]\nCommand control [1]\nFull demo [2]"
+    )
     if mode.strip() == "0":
         start = input("starting pos(three numbers with space between): ")
         start = list(start.split(" "))
@@ -317,3 +319,18 @@ if __name__ == "__main__":
                     print(line)
                     if b"finished" in line:
                         completed = True
+    elif mode.strip() == "2":
+        start = input("starting pos(three numbers with space between): ")
+        start = list(start.split(" "))
+        start = [int(i) for i in start]
+        navigation2climbing(
+            start=start,
+            goal=[78, 48, 1],
+            obstacles=[[84, 103, 0, 15]],
+            map_size=[103, 50],
+        )
+        climbing2navigate(
+            map=[103, 58],
+            obstacles=[[46, 54, 0, 15]],
+            goal=[20, 5, 3],
+        )
