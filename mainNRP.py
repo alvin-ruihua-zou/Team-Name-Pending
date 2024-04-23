@@ -9,6 +9,7 @@ from stair_detection import detect_stairs, check_dist
 
 
 def wait_arduino():
+    completed = False
     while not completed:
         line = arduino.readline()
         print(line)
