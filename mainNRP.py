@@ -184,9 +184,10 @@ def climbing2navigate(map, obstacles, resolution=0.1, goal=[20, 4]):
     arduino.write(bytes("t-0.95:\r\n", "utf-8"))
     wait_arduino()
     dist = check_dist()
-    time.sleep(0.1)
+    time.sleep(1)
     arduino.write(bytes("t0.95:\r\n", "utf-8"))
     wait_arduino()
+    time.sleep(1)
     # Convert dist from cm to m, then to map resolution
     dist = int(dist / 100.0 / resolution)
     # dist = 10
@@ -368,14 +369,14 @@ if __name__ == "__main__":
             obstacles=[[84, 103, 0, 15], [0, 40, 45, 50]],
             map_size=[103, 50],
         )
-        time.sleep(1)
+        wait_arduino()
         climbing2navigate(
             map=[103, 58],
             obstacles=[[46, 54, 0, 25]],
             goal=[10, 5, 3],
         )
     elif mode.strip() == "4":
-        arduino.write(bytes("step:fw2:\r\n", "utf-8"))
+        arduino.write(bytes("i1:step:fw2:\r\n", "utf-8"))
         wait_arduino()
         climbing2navigate(
             map=[103, 58],
