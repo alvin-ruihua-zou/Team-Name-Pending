@@ -204,7 +204,7 @@ def climbing2navigate(map, obstacles, resolution=0.1, goal=[20, 4]):
                 # arduino.write(bytes("odo:" + "\r\n", "utf-8"))
                 while True:
                     line = arduino.readline()
-                    print(line)
+                    print("line from arduino is: ", line)
                     if b"x, y, theta" in line:
                         y = str(arduino.readline())
                         y = float(re.findall("\d+\.\d+", y)[0])
